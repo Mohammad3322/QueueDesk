@@ -8,8 +8,8 @@ export const Header: React.FC = () => {
   return (
     <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-30 px-4 sm:px-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="bg-blue-600 text-white font-bold p-2 rounded-lg text-lg leading-none">
-          QD
+        <div className="border-blue-600 bg-white font-bold p-2 rounded-lg text-lg leading-none">
+          <img src="/src/assets/Logo.png" className="w-12" />
         </div>
         <h1 className="text-xl font-bold text-gray-900 tracking-tight">
           QueueDesk

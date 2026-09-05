@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  MOCK_TICKETS,
+  // MOCK_TICKETS,
   MOCK_CUSTOMERS,
   MOCK_AGENTS,
 } from "../../mocks/generator";
@@ -10,10 +10,12 @@ import { TicketFilters } from "./TicketFilters";
 import { Badge } from "../../components/ui/Badge";
 import { Pagination } from "../../components/ui/Pagination";
 import { getSLAStatus } from "../../utils/ticketHelpers";
+import { useTickets } from "../../hooks/useTickets";
 
 export const TicketsPage: React.FC = () => {
+  const { tickets: allTickets } = useTickets();
   const { tickets, totalItems, totalPages, currentPage, pageSize } =
-    useFilteredTickets(MOCK_TICKETS);
+    useFilteredTickets(allTickets);
 
   const getCustomerName = (customerId: string) => {
     return (
