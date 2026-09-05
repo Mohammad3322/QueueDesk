@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { UserProvider } from "./features/users/UserContext";
 import { AppLayout } from "./components/AppLayout";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
+import { TicketsPage } from "./features/tickets/TicketsPage";
 
 export function App() {
   return (
@@ -10,14 +11,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
-            <Route
-              path="tickets"
-              element={
-                <div className="p-4 text-gray-700 font-medium">
-                  Tickets Page Placeholder
-                </div>
-              }
-            />
+            <Route path="tickets" element={<TicketsPage />} />
             <Route
               path="tickets/new"
               element={
