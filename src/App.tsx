@@ -5,6 +5,7 @@ import { AppLayout } from "./components/AppLayout";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { TicketsPage } from "./features/tickets/TicketsPage";
 import { TicketDetailPage } from "./features/tickets/TicketDetailPage";
+import { NewTicketPage } from "./features/tickets/NewTicketPage";
 
 export function App() {
   return (
@@ -15,14 +16,7 @@ export function App() {
             <Route path="/" element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="tickets" element={<TicketsPage />} />
-              <Route
-                path="tickets/new"
-                element={
-                  <div className="p-4 text-gray-700 font-medium">
-                    New Ticket Page Placeholder
-                  </div>
-                }
-              />
+              <Route path="tickets/new" element={<NewTicketPage />} />
               <Route path="tickets/:ticketId" element={<TicketDetailPage />} />
             </Route>
           </Routes>
