@@ -15,12 +15,15 @@ export const isTicketOverdue = (ticket: Ticket): boolean => {
   return new Date(ticket.dueAt).getTime() < Date.now();
 };
 
-export const getSLAStatus = (ticket: Ticket): "on-track" | "due-soon" | "overdue" | "completed" => {
+export const getSLAStatus = (
+  ticket: Ticket,
+): "on-track" | "due-soon" | "overdue" | "completed" => {
   if (ticket.status === "resolved" || ticket.status === "closed") {
     return "completed";
   }
-  const diffMinutes = (new Date(ticket.dueAt).getTime() - Date.now()) / (1000 * 60);
-  
+  const diffMinutes =
+    (new Date(ticket.dueAt).getTime() - Date.now()) / (1000 * 60);
+
   if (diffMinutes < 0) return "overdue";
   if (diffMinutes <= 60) return "due-soon";
   return "on-track";

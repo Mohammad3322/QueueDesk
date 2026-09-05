@@ -1,5 +1,8 @@
 import { useContext } from "react";
-import { TicketContext, type TicketContextType } from "../features/tickets/context";
+import {
+  TicketContext,
+  type TicketContextType,
+} from "../features/tickets/context";
 
 export const useTickets = (): TicketContextType => {
   const context = useContext(TicketContext);

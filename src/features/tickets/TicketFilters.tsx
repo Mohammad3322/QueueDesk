@@ -1,7 +1,11 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Input } from "../../components/ui/Input";
-import { MOCK_AGENTS } from "../../mocks/generator";
+import { Select } from "../../components/ui/Select";
+import { MOCK_AGENTS, CATEGORIES_LIST } from "../../mocks/generator";
+
+const selectCompactClass = "h-[38px]";
+const selectMiniClass = "text-xs px-2.5 py-1.5";
 
 export const TicketFilters: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -10,6 +14,7 @@ export const TicketFilters: React.FC = () => {
   const status = searchParams.get("status") || "all";
   const priority = searchParams.get("priority") || "all";
   const assignee = searchParams.get("assignee") || "all";
+  const category = searchParams.get("category") || "all";
   const sla = searchParams.get("sla") || "all";
   const sortBy = searchParams.get("sort") || "createdAt";
   const sortOrder = searchParams.get("order") || "desc";
@@ -21,7 +26,7 @@ export const TicketFilters: React.FC = () => {
     } else {
       newParams.delete(key);
     }
-    // إعادة التعيين للصفحة الأولى عند تغيير الفلاتر لضمان عدم حدوث أخطاء الصفحة الفارغة
+    // Reset to the first page whenever filters change to avoid a blank page.
     newParams.set("page", "1");
     setSearchParams(newParams);
   };
@@ -33,78 +38,93 @@ export const TicketFilters: React.FC = () => {
   return (
     <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* شريط البحث */}
+        {/* Search */}
         <Input
-          placeholder="Search by ID, subject..."
+          placeholder="Search by ID, subject, customer..."
           value={search}
           onChange={(e) => updateParam("search", e.target.value)}
         />
 
-        {/* فلتر الحالة */}
-        <div>
-          <select
-            value={status}
-            onChange={(e) => updateParam("status", e.target.value)}
-            className="w-full h-[38px] px-3 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="open">Open</option>
-            <option value="in-progress">In Progress</option>
-            <option value="waiting-on-customer">Waiting on Customer</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
-          </select>
-        </div>
+        {/* Status filter */}
+        <Select
+          aria-label="Filter by status"
+          className={selectCompactClass}
+          value={status}
+          onChange={(e) => updateParam("status", e.target.value)}
+        >
+          <option value="all">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="in-progress">In Progress</option>
+          <option value="waiting-on-customer">Waiting on Customer</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </Select>
 
-        {/* فلتر الأولوية */}
-        <div>
-          <select
-            value={priority}
-            onChange={(e) => updateParam("priority", e.target.value)}
-            className="w-full h-[38px] px-3 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Priorities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
+        {/* Priority filter */}
+        <Select
+          aria-label="Filter by priority"
+          className={selectCompactClass}
+          value={priority}
+          onChange={(e) => updateParam("priority", e.target.value)}
+        >
+          <option value="all">All Priorities</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </Select>
 
-        {/* فلتر المسؤول */}
-        <div>
-          <select
-            value={assignee}
-            onChange={(e) => updateParam("assignee", e.target.value)}
-            className="w-full h-[38px] px-3 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Assignees</option>
-            <option value="unassigned">Unassigned</option>
-            {MOCK_AGENTS.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Category filter */}
+        <Select
+          aria-label="Filter by category"
+          className={selectCompactClass}
+          value={category}
+          onChange={(e) => updateParam("category", e.target.value)}
+        >
+          <option value="all">All Categories</option>
+          {CATEGORIES_LIST.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </Select>
+
+        {/* Assignee filter */}
+        <Select
+          aria-label="Filter by assignee"
+          className={selectCompactClass}
+          value={assignee}
+          onChange={(e) => updateParam("assignee", e.target.value)}
+        >
+          <option value="all">All Assignees</option>
+          <option value="unassigned">Unassigned</option>
+          {MOCK_AGENTS.map((agent) => (
+            <option key={agent.id} value={agent.id}>
+              {agent.name}
+            </option>
+          ))}
+        </Select>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100">
         <div className="flex items-center gap-3">
-          {/* فلتر حالة SLA */}
-          <select
+          {/* SLA status filter */}
+          <Select
+            aria-label="Filter by SLA status"
+            className={selectMiniClass}
             value={sla}
             onChange={(e) => updateParam("sla", e.target.value)}
-            className="text-xs px-2.5 py-1.5 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">SLA Status: All</option>
             <option value="overdue">Overdue</option>
             <option value="due-soon">Due Soon</option>
             <option value="on-track">On Track</option>
-          </select>
+          </Select>
 
-          {/* الترتيب */}
-          <select
+          {/* Sort */}
+          <Select
+            aria-label="Sort tickets"
+            className={selectMiniClass}
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [s, o] = e.target.value.split("-");
@@ -113,19 +133,20 @@ export const TicketFilters: React.FC = () => {
               newParams.set("order", o);
               setSearchParams(newParams);
             }}
-            className="text-xs px-2.5 py-1.5 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="createdAt-desc">Newest First</option>
             <option value="createdAt-asc">Oldest First</option>
             <option value="priority-desc">Priority: High to Low</option>
             <option value="priority-asc">Priority: Low to High</option>
             <option value="dueAt-asc">Due Soonest</option>
-          </select>
+            <option value="customerName-asc">Customer: A to Z</option>
+            <option value="customerName-desc">Customer: Z to A</option>
+          </Select>
         </div>
 
         <button
           onClick={handleReset}
-          className="text-xs font-medium text-gray-500 hover:text-red-600 transition-colors"
+          className="text-xs font-medium text-gray-500 hover:text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
         >
           Reset Filters
         </button>

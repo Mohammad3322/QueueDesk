@@ -1,0 +1,947 @@
+QueueDesk — Frontend Engineering Portfolio Project
+Page 1
+QueueDesk
+Customer Support Operations Dashboard
+Frontend Engineering Portfolio Project — Learner Assignment & Engineering Specification
+Project Attribute Specification
+Primary technologies
+JavaScript, TypeScript, React.js, Tailwind CSS
+Recommended tooling
+Vite, React Router, ESLint, Prettier, Vitest, React Testing Library; optional Playwright
+Expected effort
+50–65 hours without AI assistance; 65–75+ hours with selected advanced challenges
+Target level
+Junior Frontend Developer → Strong Junior / Early Intermediate
+Core emphasis
+Frontend engineering, system design thinking, systematic QA/testing, accessibility, performance, architecture decisions
+Delivery expectation
+Public GitHub repository, deployed application, professional README, architecture documentation, test evidence, QA report
+Learner instruction: The purpose of this project is not to finish quickly. The purpose is to understand and defend the engineering decisions made throughout the work. Use official documentation, browser developer tools, textbooks, and normal technical research. Avoid AI-assisted code generation while completing the core assignment so that debugging, design choices, and implementation tradeoffs remain part of the learning process.
+QueueDesk — Frontend Engineering Portfolio Project
+Page 2
+Contents
+
+1. 1. Project Purpose and Business Context
+2. 2. Learning Outcomes and Technology Scope
+3. 3. Users, Roles, and Functional Scope
+4. 4. Domain Model and Data Design
+5. 5. Mandatory System Design & Decision-Making Process
+6. 6. Phase 1 — Foundation and Application Shell
+7. 7. Phase 2 — Ticket List and Data Operations
+8. 8. Phase 3 — Ticket Detail and Workflow
+9. 9. Phase 4 — Ticket Creation and Form Engineering
+10. 10. Phase 5 — Dashboard, Analytics, and Data Layer
+11. 11. Phase 6 — Production Hardening
+12. 12. Mandatory Systematic QA & Testing Process
+13. 13. Git and Engineering Workflow
+14. 14. Edge Cases and Advanced Challenges
+15. 15. Documentation and Portfolio Presentation
+16. 16. Evaluation Rubric
+17. 17. Final Technical Interview Review
+18. 18. Definition of Done and Execution Schedule
+        QueueDesk — Frontend Engineering Portfolio Project
+        Page 3
+19. Project Purpose and Business Context
+    QueueDesk is a browser-based customer-support operations application for a small SaaS company. The company currently manages customer issues using spreadsheets, email, and informal communication between support agents. QueueDesk replaces that fragmented workflow with a centralized operational interface.
+    The project intentionally focuses on frontend engineering rather than backend complexity. The learner should spend most of the work on application state, data transformations, reusable components, forms, validation, TypeScript modeling, API boundaries, responsive design, accessibility, testing, performance, and explicit system-design decisions.
+    1.1 Business Problems to Solve
+    • Tickets are missed or forgotten.
+    • Urgent requests are not consistently prioritized.
+    • Ownership is unclear.
+    • SLA deadlines are missed.
+    • Managers cannot quickly understand team workload.
+    • Historical tickets are difficult to search.
+    • Support metrics are weak or unavailable.
+    • Workflow rules are inconsistently applied.
+    1.2 Working Scale Assumptions Dimension Assumption
+    Support employees
+    ~20
+    Customers
+    ~2,000
+    Tickets per day
+    100–300
+    Active tickets
+    ~2,000
+    Historical tickets
+    100,000+ in a production-scale discussion
+    Comments per ticket
+    1–20 typical
+    The portfolio implementation does not need to load production-scale data. However, architecture decisions must acknowledge how behavior would change at substantially larger scale.
+    1.3 Example Ticket Categories
+    • Account Access
+    • Billing
+    • Bug Report
+    • Feature Question
+    • Integration
+    • Performance
+    • Security
+    • General Question
+20. Learning Outcomes and Technology Scope
+    2.1 JavaScript
+    • Arrays and objects; immutability; promises and async/await; event handling; sorting and filtering; debouncing; date handling; error handling; race-condition reasoning.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 4
+    2.2 TypeScript
+    • Interfaces and type aliases; union types; optional fields; narrowing; reusable function signatures; API response types; strict mode; avoiding unexplained any; domain modeling.
+    2.3 React
+    • Component composition; props; local and global state; derived state; hooks; controlled forms; asynchronous effects; custom hooks; rendering behavior; performance profiling.
+    2.4 Tailwind CSS
+    • Responsive design; spacing systems; flexbox/grid; typography; reusable styling conventions; states; breakpoints; accessible focus treatment.
+    2.5 Frontend Engineering
+    • Project organization; separation of concerns; service/data layer design; loading/error/empty states; testing strategy; accessibility; URL state; system-design decisions; documentation and tradeoff analysis.
+21. Users, Roles, and Functional Scope
+    3.1 Support Agent
+    • View assigned tickets.
+    • Identify urgent work.
+    • Search and filter tickets.
+    • Update ticket status.
+    • Change priority where permitted.
+    • Add internal comments.
+    • Inspect customer details.
+    • Understand ticket history and SLA deadlines.
+    3.2 Support Manager
+    • View all tickets.
+    • Assign tickets to agents.
+    • View workload distribution.
+    • Identify overdue and critical tickets.
+    • Monitor support metrics.
+    • Review team-level analytics.
+    3.3 Role Simulation
+    Real authentication is not required. Implement a simulated current user with at least one Agent and one Manager persona. The selected user should be available application-wide.
+    type UserRole = "agent" | "manager"; Action Agent Manager
+    View tickets
+    Yes
+    Yes
+    Update assigned ticket
+    Yes
+    Yes
+    Assign any ticket
+    No
+    Yes
+    View analytics
+    Limited
+    Yes
+    Change critical priority
+    Optional
+    Yes
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 5
+    Do not scatter role checks throughout JSX. Prefer centralized permission functions such as canAssignTicket(user), canEditTicket(user, ticket), and canViewAnalytics(user). This separates business rules from presentation.
+    3.4 Major Modules
+22. User Session Simulation
+23. Dashboard
+24. Ticket Management
+25. Ticket Detail
+26. Ticket Creation
+27. Customer Information
+28. Activity History
+29. Search and Filtering
+30. Support Analytics
+31. Error/Loading/Empty States
+32. Domain Model and Data Design
+    Define the domain before building screens. Strong TypeScript starts by modeling what the application knows and what states are valid.
+    4.1 Core Types
+    interface User { id: string; name: string; email: string; avatarUrl?: string; role: "agent" | "manager"; } interface Customer { id: string; name: string; company?: string; email: string; phone?: string; plan: "free" | "starter" | "business" | "enterprise"; createdAt: string; } type TicketStatus = | "open" | "in-progress" | "waiting-on-customer" | "resolved" | "closed"; type TicketPriority = "low" | "medium" | "high" | "critical";
+    interface Ticket { id: string; subject: string; description: string; customerId: string; assigneeId?: string; status: TicketStatus; priority: TicketPriority;
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 6
+    category: string; tags: string[]; createdAt: string; updatedAt: string; dueAt: string; resolvedAt?: string; } interface Comment { id: string; ticketId: string; authorId: string; body: string; createdAt: string; } interface ActivityEvent { id: string; ticketId: string; type: "ticket-created" | "status-changed" | "priority-changed" | "assigned" | "comment-added" | "ticket-resolved"; actorId: string; createdAt: string; metadata?: Record<string, unknown>; }
+    4.2 Required Domain Questions
+33. Why should status be a union rather than an unrestricted string?
+34. Why is assigneeId optional?
+35. Should customer data be embedded in every ticket or referenced by ID?
+36. Should isOverdue be stored, or derived?
+37. Should resolutionDuration be stored, or derived?
+38. Which values are source state versus derived state?
+    Recommended derived values include isOverdue, resolutionDuration, SLA status, ticket age, filtered ticket lists, and dashboard counts. Avoid persisting data that can be deterministically computed from authoritative state.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 7
+39. Mandatory System Design & Decision-Making Process
+    System design is a required deliverable, not an optional discussion. The learner must practice a repeatable process for understanding requirements, identifying constraints, assigning responsibilities, comparing alternatives, documenting tradeoffs, and revisiting decisions after implementation.
+    5.1 Required Pre-Implementation Deliverable
+    Create docs/system-design.md before coding the main features. It must contain the following sections.
+40. Problem statement and explicit out-of-scope items.
+41. Functional requirements.
+42. Non-functional requirements.
+43. Scale assumptions.
+44. Core entities and relationships.
+45. Application state inventory and ownership.
+46. High-level architecture diagram.
+47. Data-flow diagrams for read and write operations.
+48. Component-boundary plan.
+49. Data/API boundary.
+50. Client-side versus server-side responsibility discussion.
+51. Failure-mode analysis.
+52. Performance hypotheses.
+53. Accessibility considerations.
+54. Security/trust-boundary notes.
+    5.2 Functional vs. Non-Functional Requirements Type Examples
+    Functional
+    Search tickets; filter tickets; view ticket; create ticket; update status; assign ticket; add comments; view SLA; dashboard metrics.
+    Non-functional
+    Responsive interface; keyboard accessibility; reliable error recovery; type safety; maintainable data abstraction; acceptable performance with several thousand client-side records.
+    5.3 State Ownership Matrix State Category Recommended Owner Reason
+    Current user
+    Global client state
+    Context
+    Used across application
+    Tickets
+    Server/data state
+    Data/query layer
+    Conceptually owned by backend/data source
+    Search term
+    URL state
+    Router
+    Shareable and persistent
+    Priority filter
+    URL state
+    Router
+    Defines current resource view
+    Current page
+    URL state
+    Router
+    Refresh/back/forward should preserve it
+    Create-ticket form
+    Form state
+    Form component
+    Temporary user input
+    Modal open
+    Local UI state
+    Component
+    Ephemeral UI behavior
+    Overdue count
+    Derived state
+    Computation
+    Should not be separately persisted
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 8
+    5.4 Required State Questions
+    • Who needs this state?
+    • Who can modify it?
+    • Should it survive refresh?
+    • Should it be shareable?
+    • Is it temporary UI state?
+    • Is it derived from other values?
+    • Does the server ultimately own it?
+    5.5 High-Level Architecture
+    Browser └─ React Application ├─ Routing ├─ UI Components ├─ Feature Logic ├─ Application State └─ Service/Data Layer └─ Mock HTTP API / Mock Data Store
+    Each layer must have a clear responsibility. Do not create architectural layers simply to make the diagram look sophisticated.
+    5.6 Data-Flow Exercise
+    Read Path — Load Tickets
+    User opens /tickets → page requests data → ticketService.getTickets() → request → response → data stored → search/filter/sort/paginate → rows rendered
+    Write Path — Change Ticket Status
+    User changes status → validate action → enter updating state → ticketService.updateTicket() → success/failure → update authoritative state → append activity event → UI rerenders
+    For every write flow, explicitly document the failure path. The learner should be able to explain what remains on screen, whether retry is appropriate, and whether rollback is needed.
+    5.7 Component Boundary Thinking
+    TicketDetailPage ├─ TicketHeader ├─ TicketDescription ├─ TicketProperties ├─ CustomerSummary ├─ CommentList ├─ CommentComposer └─ ActivityTimeline
+    Use responsibility rather than arbitrary file size as the primary decomposition criterion. Ask whether separation improves comprehension, reuse, testing, or ownership. Avoid both giant components and micro-components with no meaningful responsibility.
+    5.8 Client-Side vs. Server-Side Responsibility
+    For this portfolio implementation, search, filtering, sorting, and pagination may be client-side. The system-design document must explain when these operations would move to the backend, especially once ticket volume makes loading all records unreasonable.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 9
+    Browser → GET /tickets?status=open&page=2&sort=dueAt → server/database filters and paginates → compact response
+    5.9 Failure Design
+    • Tickets fail to load.
+    • Ticket update fails.
+    • Customer data is missing.
+    • Comment submission fails.
+    • Request times out.
+    • Invalid ticket ID is opened.
+    • Older async response arrives after a newer one.
+    For every failure mode define: what the user sees, whether existing data remains usable, whether retry is available, and whether the system retries automatically or waits for explicit user action.
+    5.10 Performance Design
+    Before optimizing, write hypotheses. Example: sorting 10,000 tickets on every unrelated render may cause input lag. Later validate hypotheses with profiling. Do not use memoization, virtualization, or debouncing simply because they are known performance techniques.
+    5.11 Security Boundary Thinking
+    Hiding a button is not authorization. QueueDesk may hide manager controls for agents, but a production backend must independently enforce permissions. The learner must explicitly document the trust boundary between browser and backend.
+    5.12 Architecture Decision Records (ADRs)
+    Create at least five short ADRs under docs/decisions/. Suggested decisions: URL state for filters; Context for current user; service-layer abstraction; client-side pagination for the portfolio scale; responsive card layout on mobile. ADR Section Required Content
+    Decision
+    What was chosen
+    Context
+    Why a decision was necessary
+    Options Considered
+    At least two viable approaches where appropriate
+    Chosen Approach
+    Specific implementation direction
+    Why
+    Reasoning tied to requirements/constraints
+    Tradeoffs
+    Costs and limitations
+    Reconsider When
+    Conditions that would justify changing the decision
+    5.13 Mid-Project and Final Architecture Reviews
+    After Phase 3, revisit the original design and record incorrect assumptions, state that was placed poorly, components that became too large, abstractions that were premature, and new abstractions that became necessary. After completion, create docs/architecture-retrospective.md describing what worked, what did not scale, and what would change with a real backend, 500,000 tickets, or multiple frontend teams.
+    5.14 System Design Interview Exercise
+    At project completion, answer: “Design the frontend architecture for a customer-support system with 50 support agents, 500,000 historical tickets, real-time updates, role-based permissions, search, filtering, dashboards, and unreliable network conditions.”
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 10
+    A strong answer should cover requirements, scale, data model, routes, state categories, API boundary, data fetching, pagination, caching, real-time updates, failure handling, performance, accessibility, security boundaries, testing, and tradeoffs.
+55. Phase 1 — Foundation and Application Shell
+    Expected effort: 7–9 hours.
+    6.1 Objectives
+    • Establish tooling, routing, project structure, layout, typography, design conventions, basic reusable UI components, and simulated current-user context.
+    6.2 Required Setup
+    • Vite + React + TypeScript + Tailwind CSS.
+    • React Router.
+    • ESLint and Prettier.
+    • TypeScript strict mode.
+    • Vitest and React Testing Library configured by the end of the phase or early Phase 2.
+    6.3 Recommended Project Structure
+    src/ app/ components/ui/ features/dashboard/ features/tickets/ features/customers/ features/users/ hooks/ services/ types/ utils/ mocks/ tests/
+    6.4 Required Routes
+    • /
+    • /tickets
+    • /tickets/new
+    • /tickets/:ticketId
+    • /customers/:customerId
+    • Optional: /analytics, /settings
+    6.5 UI Primitives
+    • Button
+    • Input
+    • TextArea
+    • Select
+    • Badge
+    • Card
+    • Spinner
+    • Alert
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 11
+    • EmptyState
+    • Modal/Dialog
+    Build only abstractions that solve actual reuse or consistency needs. Avoid turning Phase 1 into a generic design-system project.
+    6.6 Responsive Layout
+    Desktop should use a clear header/sidebar/main-content layout. Mobile should collapse navigation into an appropriate drawer or compact navigation pattern rather than compressing the desktop layout.
+    6.7 Phase 1 Acceptance Criteria
+    • Application launches without console errors.
+    • Navigation works and active route is clear.
+    • Desktop and mobile shells work.
+    • Current user can switch between Agent and Manager.
+    • Core UI primitives exist.
+    • TypeScript strict mode and lint pass.
+    • README skeleton exists.
+    Suggested Git tag: v0.1-foundation
+56. Phase 2 — Ticket List and Data Operations
+    Expected effort: 10–12 hours. This is the first major engineering phase.
+    7.1 Dataset
+    • At least 75 tickets, 20 customers, and 8 users.
+    • Data must vary by status, priority, dates, categories, assignees, and SLA deadlines.
+    • Prefer programmatic mock-data generation over manually writing dozens of near-identical objects.
+    7.2 Ticket List Column Requirement
+    ID
+    Clickable identifier
+    Subject
+    Readable, truncates gracefully if long
+    Customer
+    Resolved from customerId
+    Priority
+    Text + visual distinction
+    Status
+    Text + visual distinction
+    Assignee
+    Agent or Unassigned
+    Created
+    Readable date/relative time
+    SLA Deadline
+    Readable deadline/status
+    7.3 Search
+    Search ticket ID, subject, and customer name. Normalize input appropriately. Begin with simple client-side filtering, then stress-test with a generated 10,000-ticket dataset before deciding whether debouncing or other optimization is justified.
+    7.4 Filters
+    • Status: All, Open, In Progress, Waiting, Resolved, Closed.
+    • Priority: All, Low, Medium, High, Critical.
+    • Assignee: All, Unassigned, named agents.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 12
+    • Category.
+    • SLA: All, Overdue, Due Soon, On Track.
+    7.5 Sorting
+    • Created Date
+    • Due Date
+    • Priority
+    • Customer Name
+    • Ascending/descending where appropriate
+    Priority sorting must use business ordering rather than alphabetical ordering.
+    const priorityWeight = { low: 1, medium: 2, high: 3, critical: 4 };
+    7.6 URL State
+    Search, filters, sorting, and pagination should be encoded in URL search parameters where practical. Example: /tickets?status=open&priority=critical&sort=dueAt&page=2. This makes the view shareable and resilient to refresh/back/forward navigation.
+    7.7 Pagination
+    • Page navigation.
+    • Recommended page sizes: 10, 20, 50.
+    • Correct total-page and offset calculations.
+    • Reset/clamp page when filters reduce the number of pages.
+    7.8 Derived-State Pipeline
+    tickets → search → filters → sorting → pagination → visible rows
+    Do not maintain duplicate state for filteredTickets, sortedTickets, and visibleTickets without a justified reason.
+    7.9 Mobile Ticket View
+    Do not force the desktop table into a 360px viewport. Use a compact card or alternate list representation that preserves the most important operational information: ticket ID, subject, priority/status, customer, assignee, and deadline.
+    7.10 Acceptance Criteria
+    • Browse, search, filter, combine filters, sort, paginate, refresh without losing important state, use browser back/forward, open details, and clear filters.
+    • Ticket list is responsive and keyboard-operable.
+    • Empty states exist for no-data and no-match conditions.
+    Suggested tests: filterTickets(), sortTickets(), paginateTickets(), isTicketOverdue(). Suggested Git tag: v0.2-ticket-list.
+57. Phase 3 — Ticket Detail and Workflow
+    Expected effort: 9–11 hours.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 13
+    8.1 Required Detail Screen
+    • Ticket header with ID, subject, priority, status, creation time, and SLA indicator.
+    • Description.
+    • Customer panel.
+    • Assignment controls.
+    • Conversation/comments.
+    • Activity timeline.
+    8.2 Workflow State
+    Support transitions such as Open → In Progress → Waiting on Customer → Resolved → Closed. Optionally model valid transitions explicitly so that the learner experiences UI state-machine thinking.
+    const allowedTransitions = { open: ["in-progress", "closed"], "in-progress": ["waiting-on-customer", "resolved"] // continue intentionally };
+    8.3 Assignment
+    Managers may assign tickets to support agents. Agents may optionally claim an unassigned ticket. Permission checks must be routed through business-rule functions rather than only conditional JSX.
+    8.4 Comments
+    • Display comments chronologically.
+    • Reject empty and whitespace-only content.
+    • Disable submission while processing.
+    • Show actionable failure feedback.
+    8.5 Activity Timeline
+    System-generated events such as status changes, priority changes, assignment changes, comments added, and resolution should be distinct from human-authored comments.
+    8.6 SLA Calculation
+    type SLAStatus = "on-track" | "due-soon" | "overdue" | "completed";
+    • More than 60 minutes remaining → On Track.
+    • 0–60 minutes remaining → Due Soon.
+    • Past deadline → Overdue.
+    • Resolved ticket → Completed.
+    Calculate SLA state rather than storing it independently.
+    8.7 Acceptance Criteria
+    • View complete ticket information.
+    • Update valid status.
+    • Change priority if authorized.
+    • Assign if authorized.
+    • Add comments.
+    • Inspect customer details and activity history.
+    • Invalid ticket IDs show a controlled not-found state.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 14
+    Suggested Git tag: v0.3-ticket-workflow
+58. Phase 4 — Ticket Creation and Form Engineering
+    Expected effort: 8–10 hours. Forms receive a dedicated phase because production frontend applications depend heavily on robust form behavior.
+    9.1 Required Fields Field Requirement
+    Customer
+    Required
+    Subject
+    Required; suggested 5–120 characters
+    Description
+    Required; suggested 20–5,000 characters
+    Category
+    Required
+    Priority
+    Required
+    Assignee
+    Optional
+    Tags
+    Optional
+    9.2 Form-State Options
+    • Option A: individual useState values — simple but verbose.
+    • Option B: one structured form object — compact but requires careful updates.
+    • Option C: React Hook Form — strong production option after understanding controlled-input fundamentals.
+    9.3 Validation
+    Distinguish field constraints from business constraints. Example: subject is required (field constraint), while a Critical ticket may require a more detailed description (business constraint). Validation messages must be specific and located near the affected field.
+    9.4 Submission States
+    • Idle
+    • Submitting
+    • Success
+    • Failure
+    Prevent duplicate submission, particularly under simulated slow-network conditions.
+    9.5 Success Flow
+    Recommended behavior: after successful creation, redirect to the new ticket detail page. The learner should document why this is preferable to remaining on the form.
+    9.6 Acceptance Criteria
+    • Required and business validation work.
+    • Invalid submissions are blocked.
+    • Submission state is visible.
+    • Duplicate submissions are prevented.
+    • Errors are accessible.
+    • Successful ticket appears in list and redirects to detail.
+    • Generated ticket has valid ID/timestamps.
+    Suggested Git tag: v0.4-ticket-creation
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 15
+59. Phase 5 — Dashboard, Analytics, and Data Layer
+    Expected effort: 8–10 hours.
+    10.1 Dashboard KPIs
+    • Open Tickets
+    • Critical Tickets
+    • Overdue Tickets
+    • Resolved Today
+    • Average Resolution Time
+    All values must be derived from ticket data, not hard-coded.
+    10.2 Charts
+    • Required: Tickets by Status.
+    • Required: Tickets by Priority.
+    • Optional: Workload by Agent.
+    Using a chart library is appropriate. The educational focus is correct data transformation, responsive behavior, and accessibility limitations, not manual SVG drawing.
+    10.3 Service/Data Layer
+    interface TicketService { getTickets(): Promise<Ticket[]>; getTicket(id: string): Promise<Ticket>; createTicket(input: CreateTicketInput): Promise<Ticket>; updateTicket(id: string, changes: Partial<Ticket>): Promise<Ticket>; }
+    UI components should not care whether data ultimately comes from localStorage, JSON, a REST API, a mock server, or Supabase. The service layer exists to make that infrastructure replaceable.
+    10.4 API Simulation
+    • Simulate 300–1,200 ms latency.
+    • Simulate occasional failures during development.
+    • Provide loading, success, empty, error, and retry states.
+    10.5 Race-Condition Exercise
+    Simulate overlapping search requests whose responses return out of order. Investigate AbortController, request IDs, or equivalent stale-response protection so an older response cannot overwrite a newer search result.
+    10.6 Acceptance Criteria
+    • Dashboard metrics derived from real mock data.
+    • At least two charts.
+    • Service/data abstraction exists.
+    • Components are not coupled directly to storage implementation.
+    • Latency and failures are simulated.
+    • Loading/error/retry behavior works.
+    • Async cleanup/stale-response handling is correct.
+    Suggested Git tag: v0.5-data-dashboard
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 16
+60. Phase 6 — Production Hardening
+    Expected effort: 10–13 hours. Functionality is mostly complete before this phase; this phase distinguishes a serious portfolio project from a class exercise.
+    11.1 Accessibility
+    • Keyboard-only navigation through primary workflows.
+    • Semantic HTML.
+    • Real labels for form controls.
+    • Visible focus states.
+    • Logical heading hierarchy.
+    • Status is never communicated by color alone.
+    • Accessible validation messages.
+    • Custom dialogs manage focus correctly, or use a reputable accessible primitive.
+    11.2 Responsive QA Viewport Required Check
+    360px
+    Small phone
+    390px
+    Phone
+    768px
+    Tablet
+    1024px
+    Small laptop
+    1440px
+    Desktop
+    • No accidental horizontal scrolling.
+    • No overlapping controls.
+    • No clipped text.
+    • No unreachable actions.
+    • Readable typography and usable touch targets.
+    11.3 Performance Exercise
+    Generate 10,000 tickets and measure initial render, filtering, sorting, pagination, and typing responsiveness. Use React profiling/browser tools to identify at least one genuine performance issue. Document the problem, measurement method, change, and observed result. Optimize only after evidence.
+    11.4 Minimum Automated Test Suite
+    • At least 10 utility/domain tests.
+    • At least 8 component tests.
+    • At least 3 end-to-end workflows.
+    11.5 TypeScript and Console Review
+    • Search for every any and justify or remove it.
+    • Review unnecessary type assertions and inconsistent nullable/optional values.
+    • No React warnings, missing-key warnings, invalid DOM nesting, or unexpected console errors.
+    • Production build succeeds.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 17
+61. Mandatory Systematic QA & Testing Process
+    Testing is not limited to automated test files. The learner must practice a structured Quality Assurance process that provides evidence that the system behaves correctly under normal, boundary, failure, accessibility, performance, and compatibility conditions.
+    12.1 Required QA Deliverables
+    • docs/test-plan.md
+    • docs/test-cases.md with at least 40 manual test cases
+    • Bug reports for meaningful defects found during development
+    • Requirements-to-test traceability table
+    • docs/qa-report.md at completion
+    12.2 Test Plan Structure
+62. Scope
+63. Test Environment
+64. Feature Areas
+65. Test Types
+66. Test Cases
+67. Browsers
+68. Responsive Viewports
+69. Accessibility Testing
+70. Performance Testing
+71. Entry Criteria
+72. Exit Criteria
+73. Known Risks
+    12.3 Testing Levels Level Purpose QueueDesk Examples
+    Static checks
+    Catch issues before runtime
+    TypeScript compilation, ESLint, formatting, production build
+    Unit
+    Verify isolated logic
+    SLA, overdue logic, sorting, filtering, pagination, permissions, metrics
+    Component
+    Verify UI behavior in isolation
+    Filters, form validation, comment composer, SLA badge
+    Integration
+    Verify several parts working together
+    Ticket page + service layer + URL filter behavior
+    End-to-end
+    Verify complete user journeys
+    Find/update ticket; create ticket; manager assignment
+    12.4 Unit Testing Boundaries
+    For calculateSLAStatus(), test future deadlines, due-soon thresholds, overdue deadlines, resolved tickets, exact threshold boundaries, and missing/optional values. Similar boundary-oriented coverage should be applied to sorting, pagination, and permissions logic.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 18
+    12.5 Required E2E Workflows
+74. Open Tickets → filter Critical → open ticket → change status → verify new status and activity event.
+75. New Ticket → enter valid data → submit → verify detail page → return to list → confirm new ticket exists.
+76. Switch to Manager → open unassigned ticket → assign agent → verify assignment and activity timeline.
+    12.6 Positive, Negative, and Boundary Testing
+    • Positive: valid input produces expected successful result.
+    • Negative: empty/invalid values, unauthorized actions, bad IDs, and failed requests are rejected gracefully.
+    • Boundary: if subject length is 5–120, test around 4/5/6 and 119/120/121 rather than only ordinary values.
+    12.7 State-Transition Testing
+    Test both valid and invalid ticket-status transitions. If Closed → Open is prohibited, verify the UI prevents or rejects it. This is a direct validation of workflow rules, not merely visual behavior.
+    12.8 Role-Based Testing Capability Agent Manager Must Test
+    View tickets
+    Yes
+    Yes
+    Both
+    Create ticket
+    Yes
+    Yes
+    Both
+    Add comment
+    Yes
+    Yes
+    Both
+    Assign any ticket
+    No
+    Yes
+    Permission boundary
+    View full analytics
+    Limited
+    Yes
+    Role behavior
+    12.9 Data-State Testing
+    • Loading: request pending.
+    • Success: data available.
+    • Empty: request succeeds with zero records.
+    • Failure: request rejects.
+    • Retry: initial request fails and later succeeds.
+    12.10 Network and Race-Condition Testing
+    • Simulate slow network, offline mode, high latency, and request failure.
+    • Verify buttons remain correctly disabled while submitting.
+    • Verify stale async responses cannot overwrite newer state.
+    • Verify duplicate submit does not create duplicate tickets.
+    12.11 Search Test Matrix
+    • Exact ticket ID
+    • Partial ticket ID
+    • Exact customer
+    • Partial customer
+    • Subject keyword
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 19
+    • Different casing
+    • Leading/trailing whitespace
+    • No result
+    • Special characters
+    12.12 Filter Combination Testing
+    Test filters individually and in combination. Example: Status=Open + Priority=Critical + Assignee=Sarah + SLA=Overdue. Verify intersection behavior and zero-result cases.
+    12.13 Sorting and Pagination Testing
+    • Ascending/descending dates.
+    • Priority business ordering.
+    • Customer alphabetical order.
+    • Equal values.
+    • First/middle/last page.
+    • Last page with fewer records.
+    • Changing page size.
+    • Invalid page in URL.
+    • Current page becomes invalid after restrictive filtering.
+    12.14 Date/Time Testing
+    • Overdue ticket.
+    • Due now.
+    • Due in one minute.
+    • Resolved before deadline.
+    • Resolved after deadline.
+    • Cross-midnight timestamps.
+    • Relative timestamps.
+    • Optional advanced: timezone and daylight-saving transitions.
+    12.15 Responsive and Browser QA
+    Test at 360, 390, 768, 1024, and 1440px. At minimum verify current Chrome, Firefox, and Edge; Safari is recommended if available. Do not assume Chrome success proves cross-browser correctness.
+    12.16 Accessibility QA
+    • Complete a primary workflow without a mouse.
+    • Verify logical tab order and visible focus.
+    • Verify no keyboard traps.
+    • Inspect form labels and error associations.
+    • Test at 200% browser zoom.
+    • Use an accessibility audit tool.
+    • Recommended: test one important workflow with NVDA on Windows or another available screen reader.
+    12.17 Performance QA
+    • Compare behavior with 100, 1,000, and 10,000 generated tickets.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 20
+    • Inspect network requests, duplicate requests, and payload behavior.
+    • Use browser Performance tools and React Profiler.
+    • Document at least one measured performance finding.
+    12.18 Regression Testing
+    For each meaningful bug: reproduce it, identify root cause, fix it, add a regression test where reasonable, and verify adjacent behavior still works. Example: if filtering while on page 5 creates an invalid empty view, write a test that prevents the defect from returning.
+    12.19 Professional Bug Report Format Field Example
+    ID
+    BUG-014
+    Title
+    Pagination Not Reset After Filter
+    Environment
+    Chrome, 1440px, development build
+    Preconditions
+    100+ tickets; current page 5
+    Steps
+    Open Tickets → page 5 → filter Critical
+    Expected
+    Pagination adjusts to valid page
+    Actual
+    Empty table although matching results exist on page 1
+    Severity
+    Medium
+    Evidence
+    Screenshot/video if useful
+    12.20 Severity Model Severity Definition Example
+    Critical
+    Core system unusable
+    App crashes on startup
+    High
+    Major workflow broken
+    Cannot create tickets
+    Medium
+    Incorrect behavior with workaround
+    Pagination invalid after filtering
+    Low
+    Minor issue
+    Small alignment defect
+    12.21 Minimum Manual Test Cases
+    Create at least 40 documented manual test cases distributed across navigation, tickets, search, filtering, sorting, pagination, forms, comments, permissions, dashboard, errors, responsive behavior, and accessibility.
+    12.22 Risk-Based Testing
+    Prioritize test effort using Business Impact × Likelihood of Failure. Ticket creation, assignment, permissions, filters, SLA calculations, and state transitions should receive more attention than decorative details.
+    12.23 Exploratory Testing
+    Spend approximately one hour deliberately trying to break the application without following scripted cases: navigate rapidly, double-click actions, change filters quickly, resize during interaction, paste unusual text, submit very long values, disconnect network, switch users while a ticket is open, and use browser back repeatedly. Document defects discovered.
+    12.24 Requirements Traceability Requirement Example Test Coverage Result
+    FR-01 Search Tickets
+    TC-01–TC-07
+    Pass/Fail
+    FR-02 Filter Tickets
+    TC-08–TC-16
+    Pass/Fail
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 21
+    FR-03 Ticket Detail
+    TC-17–TC-21
+    Pass/Fail
+    FR-04 Create Ticket
+    TC-22–TC-30
+    Pass/Fail
+    12.25 QA Exit Criteria
+    • 0 known Critical bugs.
+    • 0 known High bugs affecting primary workflows.
+    • Required E2E tests pass.
+    • Required unit/component tests pass.
+    • TypeScript and lint pass.
+    • Production build passes.
+    • Core manual regression checklist passes.
+    • Known Medium/Low issues, if any, are documented.
+    12.26 Final QA Report
+    docs/qa-report.md should summarize what was tested, environments, automated results, manual results, accessibility findings, performance findings, bugs by severity, known issues, and a release assessment explaining why the project is acceptable for portfolio publication.
+    12.27 QA Retrospective Questions
+77. Which testing method found the most bugs?
+78. Which bug was hardest to reproduce?
+79. Which defect should have been caught earlier?
+80. Which requirement was hardest to test?
+81. Which test became brittle?
+82. Which automated test provided the most value?
+83. What belongs at unit level rather than E2E?
+84. What remains better suited to manual testing?
+85. Which failure mode did you initially forget?
+86. How would the strategy change on a production team?
+87. Git and Engineering Workflow
+    13.1 Commit Quality
+    Avoid vague commits such as update, fix2, or final-final. Use meaningful messages such as: feat: add ticket status filtering; feat: implement URL-backed ticket filters; fix: prevent stale search responses; refactor: extract ticket service layer; test: add SLA calculation unit tests; docs: document state architecture.
+    13.2 Branching
+    • main
+    • feature/ticket-filters
+    • feature/ticket-detail
+    • feature/dashboard
+    Occasionally use pull requests even when working alone. A PR description forces the learner to explain what changed, why, and how it was tested.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 22
+    13.3 GitHub Issues
+    Create 15–25 meaningful user stories/issues. Use “As a [user], I want [capability], so that [business outcome]” for product behavior. Technical chores such as ESLint configuration do not require artificial user-story language.
+    13.4 Example User Stories
+88. As a support agent, I want to see tickets assigned to me so I can understand my workload.
+89. As a support agent, I want to search by customer or subject so I can find requests quickly.
+90. As a manager, I want to identify overdue tickets so I can prevent SLA violations.
+91. As a manager, I want to assign unowned tickets so each request has a responsible agent.
+92. As an agent, I want to add internal comments so investigation context is retained.
+93. As an agent, I want to see activity history so I understand what happened before I joined the case.
+94. As a manager, I want to view ticket volume by priority so I can understand support demand.
+95. Edge Cases and Advanced Challenges
+    14.1 Required Edge Cases
+    • Zero tickets.
+    • Invalid ticket ID.
+    • Missing customer record.
+    • Unassigned ticket.
+    • Resolved ticket should not continue accumulating active SLA overdue state.
+    • Very long subject and customer name.
+    • Network failure and slow network.
+    • Duplicate submit.
+    • No search results.
+    14.2 Optional Advanced Challenges
+    • Bulk ticket selection and bulk status/priority/assignee actions.
+    • Keyboard shortcuts such as C for Create Ticket and / to focus Search.
+    • Saved views such as My Critical Tickets, Unassigned Tickets, and Overdue Tickets.
+    • Column configuration.
+    • Dark mode with persisted/system preference.
+    • Optimistic updates with rollback on failure.
+    14.3 Explicitly Out of Scope
+    • Real OAuth/authentication provider integration.
+    • Full production backend.
+    • Email ingestion system.
+    • Customer chat server.
+    • Payments.
+    • AI chatbot.
+    • Microservices/Kubernetes.
+    • Elaborate notification infrastructure.
+    QueueDesk — Frontend Engineering Portfolio Project
+    Page 23
+96. Documentation and Portfolio Presentation
+    15.1 Required README Sections
+97. Problem
+98. Solution
+99. Demo link
+100. Screenshots: dashboard, ticket list, detail, create ticket, mobile view
+101. Main Features
+102. Technology and important choices
+103. Architecture diagram
+104. Technical Decisions / ADR summary
+105. Performance case study
+106. Accessibility approach
+107. Testing strategy
+108. Known Limitations
+109. Future Improvements
+     15.2 Technical Decision Documentation
+     At minimum discuss five meaningful decisions, including URL state, TypeScript unions, service/data layer, mobile table redesign, and derived SLA state. For each, explain alternatives and tradeoffs rather than presenting the chosen approach as universally correct.
+     15.3 Performance Case Study
+     Include one real investigation with real measurements where possible. Example structure: problem → measurement → optimization → outcome. Do not invent performance numbers.
+     15.4 LinkedIn Presentation
+     The portfolio post should describe the business problem, one or two technically difficult areas, a meaningful architectural decision, a bug/performance issue encountered, what was learned, and links to the deployed demo and GitHub repository. Avoid a generic “I built another React project” framing.
+110. Evaluation Rubric — 100 Points Area Weight What Strong Work Demonstrates
+     Core Functionality
+     15
+     Reliable core workflows; not just static screens
+     React Engineering
+     15
+     Reasonable component boundaries, state ownership, effects, composition, render reasoning
+     TypeScript
+     12
+     Strong domain models, unions, narrowing, API typing, minimal unexplained any
+     JavaScript Fundamentals
+     8
+     Async behavior, transformations, sorting/filtering, dates, immutability, race-condition reasoning
+     UI / Tailwind / Responsive
+     8
+     Consistent, maintainable, responsive implementation
+     Accessibility
+     8
+     Semantics, keyboard, focus, labels, error communication, usable
+     QueueDesk — Frontend Engineering Portfolio Project
+     Page 24
+     responsive behavior
+     System Design & Engineering Decisions
+     12
+     Requirements, state model, architecture, ADRs, alternatives, scale/failure analysis, retrospective
+     QA & Testing Discipline
+     12
+     Test plan, cases, risk prioritization, automated/manual/exploratory testing, QA report
+     Architecture / Code Quality
+     5
+     Separation of concerns, service layer, maintainability
+     Documentation / GitHub
+     5
+     README, screenshots, deployment, meaningful history and explanations
+     Score Interpretation
+     90–100
+     Exceptional junior portfolio project
+     80–89
+     Strong junior frontend work
+     70–79
+     Job-ready with some weaknesses
+     60–69
+     Fundamentals present; needs refinement
+     Below 60
+     Improve before using as a primary portfolio project
+111. Final Technical Interview Review
+     After completion, the learner should answer these without first opening the source code.
+     17.1 JavaScript
+112. Explain the search → filter → sort → paginate transformation pipeline.
+113. How does priority sorting work?
+114. What asynchronous race condition did you consider?
+115. What is the difference between debounce and throttle?
+116. How are dates and SLA deadlines calculated?
+     17.2 TypeScript
+117. Why is TicketStatus a union rather than string?
+118. Where did TypeScript prevent a real bug?
+119. When would you use unknown instead of any?
+120. How do you type partial ticket updates?
+121. Which fields are optional and why?
+     17.3 React
+122. What data belongs in state?
+123. What data is derived?
+124. What causes the ticket table to rerender?
+125. Which effects exist and why?
+126. Could any effects be removed?
+127. Why is current user global?
+128. Why are filters not global context state?
+129. How does form state work?
+130. What happens when an API request fails?
+     QueueDesk — Frontend Engineering Portfolio Project
+     Page 25
+131. How do you prevent stale requests from updating state?
+     17.4 Architecture and System Design
+132. Why does the service layer exist?
+133. If mock data becomes a REST backend, what frontend code changes?
+134. How does the architecture change for 500,000 tickets?
+135. Where should server-side filtering/pagination begin?
+136. How would real authentication change the frontend?
+137. Which permissions must be enforced by the backend?
+138. Which architecture decision would you change if starting again?
+139. What assumptions failed during implementation?
+     17.5 UX, Accessibility, and Performance
+140. Why is the mobile ticket layout different from desktop?
+141. How do users recover from API failures?
+142. How does keyboard navigation work?
+143. What makes the form accessible?
+144. What did you profile?
+145. What was actually slow?
+146. Which optimization did you implement and why?
+147. Why did you not memoize everything?
+148. At what scale would virtualization become useful?
+149. Definition of Done and Execution Schedule
+     18.1 Recommended Schedule Phase Expected Hours Primary Deliverable
+150. Foundation
+     7–9
+     Application shell, routing, design foundation
+151. Ticket Management
+     10–12
+     Production-quality ticket list
+152. Ticket Workflow
+     9–11
+     Operational ticket workspace
+153. Forms
+     8–10
+     Robust create-ticket workflow
+154. Data & Analytics
+     8–10
+     Dashboard + asynchronous data layer
+155. Production Hardening
+     10–13
+     Tested, accessible, documented, deployed application
+     Minimum credible implementation: ~50 hours. Strong portfolio implementation: ~60 hours. Advanced implementation with selected stretch features: 65–75+ hours.
+     18.2 Final Definition of Done
+     • Ticket browsing, search, filters, sorting, pagination, details, status updates, assignment, comments, creation, and dashboard metrics work.
+     • TypeScript strict mode passes and no unexplained any remains.
+     • Components are reasonably scoped and domain models are explicit.
+     • Data layer is separated and derived state is not unnecessarily persisted.
+     • Loading, empty, error, retry, invalid-route, and duplicate-submit behavior are implemented.
+     QueueDesk — Frontend Engineering Portfolio Project
+     Page 26
+     • Desktop, tablet, and mobile are supported.
+     • Keyboard operation and accessibility checks are completed.
+     • Required automated and manual QA evidence exists.
+     • No major console warnings.
+     • Lint and production build pass.
+     • Repository is public, application is deployed, screenshots and architecture documentation are included, and technical decisions/limitations are documented.
+     18.3 Final Educational Principle
+     The project is complete only when the learner can explain and defend the important decisions. During implementation, repeatedly ask: Why does this state exist? Why does it live here? Why is this component separate? Why is this an effect? What happens when this request fails? What happens when the dataset becomes large? What happens on mobile? What happens without a mouse? What prevents invalid data? What would change in production?
+     The expected outcome is not merely a functioning React application. It is a documented engineering process: requirements → system design → implementation → verification → measurement → retrospective.

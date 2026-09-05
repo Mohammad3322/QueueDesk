@@ -1,56 +1,234 @@
-import type { Ticket, Customer, User, TicketStatus, TicketPriority } from "../types";
+import type {
+  Ticket,
+  User,
+  Customer,
+  TicketStatus,
+  TicketPriority,
+  Comment,
+  ActivityEvent,
+} from "../types";
 
-export const MOCK_CUSTOMERS: Customer[] = [
-  { id: "cust-1", name: "Acme Corp", email: "support@acme.com", plan: "enterprise", createdAt: "2024-01-15T00:00:00Z" },
-  { id: "cust-2", name: "Starlight Media", email: "hello@starlight.io", plan: "business", createdAt: "2024-02-10T00:00:00Z" },
-  { id: "cust-3", name: "Global Logistics", email: "ops@globallog.com", plan: "starter", createdAt: "2024-03-01T00:00:00Z" },
-  { id: "cust-4", name: "DevPulse Inc", email: "admin@devpulse.dev", plan: "enterprise", createdAt: "2024-03-12T00:00:00Z" },
-  { id: "cust-5", name: "Solo Founder", email: "alex@solostartup.com", plan: "free", createdAt: "2024-04-05T00:00:00Z" },
+export const MOCK_USERS: User[] = [
+  {
+    id: "usr-1",
+    name: "Sarah Connor",
+    email: "sarah@queuedesk.com",
+    role: "manager",
+    avatarUrl: "https://i.pravatar.cc/150?u=usr-1",
+  },
+  {
+    id: "usr-2",
+    name: "Alex Mercer",
+    email: "alex@queuedesk.com",
+    role: "agent",
+    avatarUrl: "https://i.pravatar.cc/150?u=usr-2",
+  },
+  {
+    id: "usr-3",
+    name: "Elena Fisher",
+    email: "elena@queuedesk.com",
+    role: "agent",
+    avatarUrl: "https://i.pravatar.cc/150?u=usr-3",
+  },
+  {
+    id: "usr-4",
+    name: "David Miller",
+    email: "david@queuedesk.com",
+    role: "agent",
+    avatarUrl: "https://i.pravatar.cc/150?u=usr-4",
+  },
 ];
 
-export const MOCK_AGENTS: User[] = [
-  { id: "user-agent-1", name: "Alex Agent", email: "alex@queuedesk.com", role: "agent" },
-  { id: "user-agent-2", name: "Sarah Smith", email: "sarah@queuedesk.com", role: "agent" },
-  { id: "user-agent-3", name: "John Doe", email: "john@queuedesk.com", role: "agent" },
-  { id: "user-manager-1", name: "Morgan Manager", email: "morgan@queuedesk.com", role: "manager" },
+const CUSTOMER_NAMES = [
+  "Northwind Traders",
+  "Acme Corporation",
+  "Globex Inc.",
+  "Initech",
+  "Umbrella Corp",
+  "Stark Industries",
+  "Wayne Enterprises",
+  "Hooli",
+  "Pied Piper",
+  "Vandelay Industries",
+  "Cyberdyne Systems",
+  "Massive Dynamic",
+  "Tyrell Corporation",
+  "Wonka Industries",
+  "Soylent Corp",
+  "Gringotts Bank",
+  "Rekall Inc.",
+  "Bluth Company",
+  "Dunder Mifflin",
+  "Prestige Worldwide",
 ];
 
-const statuses: TicketStatus[] = ["open", "in-progress", "waiting-on-customer", "resolved", "closed"];
-const priorities: TicketPriority[] = ["low", "medium", "high", "critical"];
-const categories = ["Billing", "Account Access", "Bug Report", "Feature Question", "Integration"];
+export const MOCK_CUSTOMERS: Customer[] = CUSTOMER_NAMES.map((name, i) => ({
+  id: `cust-${i + 1}`,
+  name,
+  email: `contact@${name.toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`,
+  company: name,
+  plan: (["free", "starter", "business", "enterprise"] as const)[i % 4],
+  createdAt: new Date(Date.now() - (i + 1) * 86400000 * 5).toISOString(),
+}));
 
-export const generateMockTickets = (count = 80): Ticket[] => {
+const CATEGORIES = [
+  "Account Access",
+  "Billing",
+  "Bug Report",
+  "Feature Question",
+  "Integration",
+  "Performance",
+  "Security",
+  "General Question",
+];
+
+const STATUSES: TicketStatus[] = [
+  "open",
+  "in-progress",
+  "waiting-on-customer",
+  "resolved",
+  "closed",
+];
+const PRIORITIES: TicketPriority[] = ["low", "medium", "high", "critical"];
+const SUBJECT_KEYWORDS = [
+  "cannot log in",
+  "invoice mismatch",
+  "API returns 500",
+  "slow page load",
+  "syncing failed",
+  "permissions error",
+  "billing overcharge",
+  "data export broken",
+  "webhook not firing",
+  "dashboard blank",
+];
+
+// Deterministic PRNG so mock data is stable across reloads
+function mulberry32(seed: number) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function generateMockTickets(count: number = 75): Ticket[] {
   const tickets: Ticket[] = [];
-  const now = new Date();
+  const rand = mulberry32(42);
+  const now = Date.now();
 
   for (let i = 1; i <= count; i++) {
-    const status = statuses[i % statuses.length];
-    const priority = priorities[i % priorities.length];
-    const customer = MOCK_CUSTOMERS[i % MOCK_CUSTOMERS.length];
-    const assignee = i % 5 === 0 ? undefined : MOCK_AGENTS[i % MOCK_AGENTS.length].id;
-    
-    // حساب مواعيدDueAt و CreatedAt متوازنة لتجربة SLA
-    const createdDate = new Date(now.getTime() - (count - i) * 3600000 * 4);
-    const dueDate = new Date(createdDate.getTime() + 24 * 3600000);
+    const createdAtTime = now - Math.floor(rand() * 10 * 86400000);
+    const isOverdue = rand() < 0.2;
+    const dueHours = Math.floor(rand() * 47) + 1;
+    const dueAtTime = isOverdue
+      ? createdAtTime - Math.floor(rand() * 6 + 1) * 3600000
+      : createdAtTime + dueHours * 3600000;
+
+    const status = STATUSES[Math.floor(rand() * STATUSES.length)];
+    const priority = PRIORITIES[Math.floor(rand() * PRIORITIES.length)];
+    const customer = MOCK_CUSTOMERS[Math.floor(rand() * MOCK_CUSTOMERS.length)];
+    const assignee =
+      rand() > 0.25
+        ? MOCK_USERS[Math.floor(rand() * MOCK_USERS.length)].id
+        : undefined;
+    const category = CATEGORIES[i % CATEGORIES.length];
+    const created = new Date(createdAtTime);
 
     tickets.push({
       id: `TICK-${1000 + i}`,
-      subject: `Issue regarding ${categories[i % categories.length]} #${i}`,
-      description: `Detailed support request description for ticket number ${i}. Needs agent inspection.`,
+      subject: `${SUBJECT_KEYWORDS[i % SUBJECT_KEYWORDS.length]} - ${category}`,
+      description: `Detailed problem description for ticket TICK-${1000 + i}. ${customer.name} reports ${SUBJECT_KEYWORDS[i % SUBJECT_KEYWORDS.length]} occurring during normal workflow execution. Steps to reproduce and expected behavior are documented for the support team to investigate.`,
       customerId: customer.id,
       assigneeId: assignee,
-      status: status,
-      priority: priority,
-      category: categories[i % categories.length],
-      tags: ["support", categories[i % categories.length].toLowerCase().replace(" ", "-")],
-      createdAt: createdDate.toISOString(),
-      updatedAt: createdDate.toISOString(),
-      dueAt: dueDate.toISOString(),
-      resolvedAt: status === "resolved" || status === "closed" ? new Date().toISOString() : undefined,
+      status,
+      priority,
+      category,
+      tags: [`tag-${i % 5}`, priority],
+      createdAt: created.toISOString(),
+      updatedAt: new Date(createdAtTime + 1800000).toISOString(),
+      dueAt: new Date(dueAtTime).toISOString(),
+      resolvedAt:
+        status === "resolved" || status === "closed"
+          ? new Date().toISOString()
+          : undefined,
     });
   }
 
   return tickets;
-};
+}
 
-export const MOCK_TICKETS = generateMockTickets(85);
+export function generateMockComments(tickets: Ticket[]): Comment[] {
+  const comments: Comment[] = [];
+  const rand = mulberry32(7);
+  const sampleBodies = [
+    "Customer confirmed the steps; issue reproducible on their end.",
+    "Investigation in progress. Likely related to the recent release.",
+    "Escalated to the engineering team for a fix.",
+    "Provided a workaround to the customer while we work on a permanent fix.",
+    "Customer followed up — still seeing the same behavior.",
+    "Found the root cause. A fix is being prepared for the next deploy.",
+  ];
+
+  tickets.forEach((ticket) => {
+    const count = Math.floor(rand() * 4); // 0-3 comments per ticket
+    for (let c = 0; c < count; c++) {
+      const author = MOCK_USERS[Math.floor(rand() * MOCK_USERS.length)];
+      comments.push({
+        id: `cmt-${ticket.id}-${c}`,
+        ticketId: ticket.id,
+        authorId: author.id,
+        body: sampleBodies[Math.floor(rand() * sampleBodies.length)],
+        createdAt: ticket.createdAt,
+      });
+    }
+  });
+
+  return comments;
+}
+
+export function generateMockActivityEvents(tickets: Ticket[]): ActivityEvent[] {
+  const events: ActivityEvent[] = [];
+  tickets.forEach((ticket) => {
+    events.push({
+      id: `evt-${ticket.id}-created`,
+      ticketId: ticket.id,
+      type: "ticket-created",
+      actorId: ticket.customerId,
+      createdAt: ticket.createdAt,
+    });
+    if (ticket.assigneeId) {
+      events.push({
+        id: `evt-${ticket.id}-assigned`,
+        ticketId: ticket.id,
+        type: "assigned",
+        actorId: ticket.assigneeId,
+        createdAt: ticket.updatedAt,
+        metadata: { assigneeId: ticket.assigneeId },
+      });
+    }
+    if (ticket.status === "resolved" || ticket.status === "closed") {
+      events.push({
+        id: `evt-${ticket.id}-resolved`,
+        ticketId: ticket.id,
+        type: "ticket-resolved",
+        actorId: ticket.assigneeId || "system",
+        createdAt: ticket.resolvedAt || ticket.updatedAt,
+      });
+    }
+  });
+  return events;
+}
+
+const envStressCount = Number(import.meta.env.VITE_STRESS_TICKETS);
+const MOCK_TICKET_COUNT =
+  Number.isFinite(envStressCount) && envStressCount > 0
+    ? Math.floor(envStressCount)
+    : 75;
+
+export const MOCK_TICKETS = generateMockTickets(MOCK_TICKET_COUNT);
+export const MOCK_COMMENTS = generateMockComments(MOCK_TICKETS);
+export const MOCK_ACTIVITY_EVENTS = generateMockActivityEvents(MOCK_TICKETS);
+export const MOCK_AGENTS: User[] = MOCK_USERS;
+export const CATEGORIES_LIST = CATEGORIES;

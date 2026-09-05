@@ -1,9 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTickets } from "../../hooks/useTickets";
-import { MOCK_CUSTOMERS } from "../../mocks/generator";
+import {
+  MOCK_CUSTOMERS,
+  CATEGORIES_LIST,
+  MOCK_AGENTS,
+} from "../../mocks/generator";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
+import { TextArea } from "../../components/ui/TextArea";
+import { Select } from "../../components/ui/Select";
 import { Button } from "../../components/ui/Button";
 import type { TicketPriority } from "../../types";
 
@@ -14,15 +20,21 @@ interface FormErrors {
   category?: string;
 }
 
+const SUBJECT_MIN = 5;
+const SUBJECT_MAX = 120;
+const DESCRIPTION_MIN = 20;
+
 export const NewTicketPage: React.FC = () => {
   const navigate = useNavigate();
-  const { tickets, updateTicket } = useTickets();
+  const { tickets, createTicket } = useTickets();
 
   const [customerId, setCustomerId] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Bug Report");
   const [priority, setPriority] = useState<TicketPriority>("medium");
+  const [assigneeId, setAssigneeId] = useState("");
+  const [tags, setTags] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validate = (): boolean => {
@@ -33,13 +45,18 @@ export const NewTicketPage: React.FC = () => {
     }
     if (!subject.trim()) {
       newErrors.subject = "Subject is required";
-    } else if (subject.trim().length < 5) {
-      newErrors.subject = "Subject must be at least 5 characters";
+    } else if (subject.trim().length < SUBJECT_MIN) {
+      newErrors.subject = `Subject must be at least ${SUBJECT_MIN} characters`;
+    } else if (subject.trim().length > SUBJECT_MAX) {
+      newErrors.subject = `Subject must be at most ${SUBJECT_MAX} characters`;
     }
     if (!description.trim()) {
       newErrors.description = "Description is required";
-    } else if (description.trim().length < 10) {
-      newErrors.description = "Description must be at least 10 characters";
+    } else if (description.trim().length < DESCRIPTION_MIN) {
+      newErrors.description = `Description must be at least ${DESCRIPTION_MIN} characters`;
+    }
+    if (!category) {
+      newErrors.category = "Category is required";
     }
 
     setErrors(newErrors);
@@ -50,29 +67,32 @@ export const NewTicketPage: React.FC = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    const newTicketId = `TICK-${1000 + tickets.length + 1}`;
     const now = new Date();
+    const newId = `TICK-${1000 + tickets.length + 1}`;
     const dueAt = new Date(now.getTime() + 24 * 3600000).toISOString();
 
     const newTicket = {
-      id: newTicketId,
-      subject,
-      description,
+      id: newId,
+      subject: subject.trim(),
+      description: description.trim(),
       customerId,
+      assigneeId: assigneeId || undefined,
       status: "open" as const,
       priority,
       category,
-      tags: ["support", category.toLowerCase().replace(" ", "-")],
+      tags: tags
+        ? tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : ["support"],
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
       dueAt,
     };
 
-    // إضافة التذكرة القائمة
-    updateTicket(newTicketId, newTicket);
-
-    // التوجيه إلى قائمة التذاكر
-    navigate("/tickets");
+    createTicket(newTicket);
+    navigate(`/tickets/${newId}`);
   };
 
   return (
@@ -88,20 +108,18 @@ export const NewTicketPage: React.FC = () => {
       </div>
 
       <Card>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* اختيار العميل */}
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Customer
-            </label>
-            <select
+            <Select
+              id="customer"
+              label={
+                <>
+                  Customer <span className="text-red-500">*</span>
+                </>
+              }
               value={customerId}
               onChange={(e) => setCustomerId(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 ${
-                errors.customerId
-                  ? "border-red-300 focus:ring-red-200"
-                  : "border-gray-300 focus:ring-blue-200"
-              }`}
+              error={errors.customerId}
             >
               <option value="">Select a customer...</option>
               {MOCK_CUSTOMERS.map((customer) => (
@@ -109,79 +127,94 @@ export const NewTicketPage: React.FC = () => {
                   {customer.name} ({customer.plan})
                 </option>
               ))}
-            </select>
-            {errors.customerId && (
-              <p className="mt-1 text-xs text-red-600">{errors.customerId}</p>
-            )}
+            </Select>
           </div>
 
-          {/* العنوان */}
           <Input
             label="Subject"
             placeholder="Brief description of the issue"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             error={errors.subject}
+            id="subject"
+            maxLength={SUBJECT_MAX}
           />
 
-          {/* الفئة والأولوية */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="Billing">Billing</option>
-                <option value="Account Access">Account Access</option>
-                <option value="Bug Report">Bug Report</option>
-                <option value="Feature Question">Feature Question</option>
-                <option value="Integration">Integration</option>
-              </select>
-            </div>
+            <Select
+              id="category"
+              label={
+                <>
+                  Category <span className="text-red-500">*</span>
+                </>
+              }
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {CATEGORIES_LIST.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </Select>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Priority
-              </label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as TicketPriority)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
+            <Select
+              id="priority"
+              label={
+                <>
+                  Priority <span className="text-red-500">*</span>
+                </>
+              }
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as TicketPriority)}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </Select>
           </div>
 
-          {/* التفاصيل */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              rows={5}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide detailed information about the issue..."
-              className={`w-full p-3 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
-                errors.description
-                  ? "border-red-300 focus:ring-red-200"
-                  : "border-gray-300 focus:ring-blue-200"
-              }`}
-            />
-            {errors.description && (
-              <p className="mt-1 text-xs text-red-600">{errors.description}</p>
-            )}
-          </div>
+          <Select
+            id="assignee"
+            label={
+              <>
+                Assignee <span className="text-gray-400">(Optional)</span>
+              </>
+            }
+            value={assigneeId}
+            onChange={(e) => setAssigneeId(e.target.value)}
+          >
+            <option value="">Unassigned</option>
+            {MOCK_AGENTS.filter((u) => u.role === "agent").map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </Select>
 
-          {/* أزرار الإجراءات */}
+          <TextArea
+            id="description"
+            label={
+              <>
+                Description <span className="text-red-500">*</span>
+              </>
+            }
+            rows={5}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Provide detailed information about the issue..."
+            error={errors.description}
+          />
+
+          <Input
+            label="Tags (Optional, comma-separated)"
+            placeholder="e.g. billing, urgent, api"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            id="tags"
+          />
+
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
             <Link to="/tickets">
               <Button type="button" variant="outline">

@@ -1,7 +1,7 @@
 import { useContext } from "react";
-import { UserContext, type UserContextType } from "../features/users/context";
+import { UserContext } from "../features/users/context";
 
-export const useUser = (): UserContextType => {
+export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
     throw new Error("useUser must be used within a UserProvider");

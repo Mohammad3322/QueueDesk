@@ -3,7 +3,9 @@ import type { User } from "../../types";
 
 export interface UserContextType {
   currentUser: User;
-  switchUser: (userId: string) => void;
+  setCurrentUser: (user: User) => void;
 }
 
-export const UserContext = createContext<UserContextType | undefined>(undefined);
+export const UserContext = createContext<UserContextType | undefined>(
+  undefined,
+);

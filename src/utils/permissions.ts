@@ -1,19 +1,43 @@
 import type { User, Ticket } from "../types";
 
-export const canAssignTicket = (user: User | null): boolean => {
-  return user?.role === "manager";
+export const canAssignTicket = (user: User): boolean => {
+  return user.role === "manager";
 };
 
-export const canEditTicket = (user: User | null, ticket: Ticket): boolean => {
-  if (!user) return false;
+/**
+ * An agent may claim an unassigned ticket (assign it to themselves),
+ * but may not reassign a ticket owned by someone else.
+ */
+export const canClaimTicket = (user: User, ticket: Ticket): boolean => {
+  return user.role === "agent" && !ticket.assigneeId;
+};
+
+export const canChangePriority = (user: User, newPriority: string): boolean => {
+  if (newPriority === "critical") {
+    return user.role === "manager";
+  }
+  return true;
+};
+
+export const canViewAnalytics = (user: User): boolean => {
+  return user.role === "manager";
+};
+
+/**
+ * The manager role acts as the administrator: it can manage users
+ * (view the directory, create/delete users, assign roles) and delete
+ * tickets. Agents have no administrative capabilities.
+ */
+export const canManageUsers = (user: User): boolean => {
+  return user.role === "manager";
+};
+
+export const canDeleteTickets = (user: User): boolean => {
+  return user.role === "manager";
+};
+
+export const canEditTicket = (user: User, ticket: Ticket): boolean => {
   if (user.role === "manager") return true;
-  return ticket.assigneeId === user.id;
-};
-
-export const canViewAnalytics = (user: User | null): boolean => {
-  return user?.role === "manager";
-};
-
-export const canChangeCriticalPriority = (user: User | null): boolean => {
-  return user?.role === "manager";
+  // Agents can work on their own tickets or claim unassigned ones.
+  return canClaimTicket(user, ticket) || ticket.assigneeId === user.id;
 };
