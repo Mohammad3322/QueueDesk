@@ -26,7 +26,7 @@ export const Header: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-1.5">
+        <div className="  items-center gap-2 hidden md:flex bg-gray-50 border border-gray-200 rounded-lg p-1.5">
           <label
             htmlFor="user-select"
             className="text-xs font-medium text-gray-500 pl-1"
@@ -50,6 +50,30 @@ export const Header: React.FC = () => {
           </select>
         </div>
 
+        {/* Mobile Role */}
+        <div className="  items-center gap-2  md:hidden bg-gray-50 border border-gray-200 rounded-lg p-1.5">
+          <label
+            htmlFor="user-select"
+            className="text-xs font-medium text-gray-500 pl-1"
+          >
+            Role:
+          </label>
+          <select
+            id="user-select"
+            value={currentUser.id}
+            onChange={(e) => {
+              const user = users.find((u) => u.id === e.target.value);
+              if (user) setCurrentUser(user);
+            }}
+            className="text-xs bg-white border border-gray-300 rounded md:px-2 py-1 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[16px] truncate"
+          >
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name.substring(0, 7)} ({user.role.toUpperCase()})
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="flex items-center gap-2">
           <Link
             to={APP_ROUTES.notifications}
@@ -71,7 +95,6 @@ export const Header: React.FC = () => {
             )}
           </Link>
         </div>
-
         <div className="flex items-center gap-2">
           {currentUser.avatarUrl && (
             <img
