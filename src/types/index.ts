@@ -77,3 +77,29 @@ export interface ActivityEvent {
   createdAt: string;
   metadata?: Record<string, unknown>;
 }
+
+// Notifications
+export type NotificationType =
+  | "ticket-assigned"
+  | "new-ticket"
+  | "daily-summary";
+
+export interface AppNotification {
+  id: string;
+  recipientId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  ticketId?: string;
+  createdAt: string;
+  read: boolean;
+}
+
+export interface NotificationsContextType {
+  notifications: AppNotification[];
+  addNotification: (notification: AppNotification) => void;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  unreadCountFor: (recipientId: string) => number;
+  notificationsFor: (recipientId: string) => AppNotification[];
+}

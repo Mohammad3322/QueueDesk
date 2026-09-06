@@ -3,10 +3,14 @@ import type {
   User,
   Customer,
   TicketStatus,
-  TicketPriority,
   Comment,
   ActivityEvent,
 } from "../types";
+import {
+  TICKET_CATEGORIES,
+  TICKET_PRIORITIES,
+  TICKET_STATUSES,
+} from "../constants";
 
 export const MOCK_USERS: User[] = [
   {
@@ -63,7 +67,7 @@ const CUSTOMER_NAMES = [
 ];
 
 export const MOCK_CUSTOMERS: Customer[] = CUSTOMER_NAMES.map((name, i) => ({
-  id: `cust-${i + 1}`,
+  id: `customer-${i + 1}`,
   name,
   email: `contact@${name.toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`,
   company: name,
@@ -71,25 +75,8 @@ export const MOCK_CUSTOMERS: Customer[] = CUSTOMER_NAMES.map((name, i) => ({
   createdAt: new Date(Date.now() - (i + 1) * 86400000 * 5).toISOString(),
 }));
 
-const CATEGORIES = [
-  "Account Access",
-  "Billing",
-  "Bug Report",
-  "Feature Question",
-  "Integration",
-  "Performance",
-  "Security",
-  "General Question",
-];
-
-const STATUSES: TicketStatus[] = [
-  "open",
-  "in-progress",
-  "waiting-on-customer",
-  "resolved",
-  "closed",
-];
-const PRIORITIES: TicketPriority[] = ["low", "medium", "high", "critical"];
+const STATUSES: TicketStatus[] = [...TICKET_STATUSES];
+const PRIORITIES = TICKET_PRIORITIES;
 const SUBJECT_KEYWORDS = [
   "cannot log in",
   "invoice mismatch",
@@ -133,7 +120,7 @@ export function generateMockTickets(count: number = 75): Ticket[] {
       rand() > 0.25
         ? MOCK_USERS[Math.floor(rand() * MOCK_USERS.length)].id
         : undefined;
-    const category = CATEGORIES[i % CATEGORIES.length];
+    const category = TICKET_CATEGORIES[i % TICKET_CATEGORIES.length];
     const created = new Date(createdAtTime);
 
     tickets.push({
@@ -231,4 +218,5 @@ export const MOCK_TICKETS = generateMockTickets(MOCK_TICKET_COUNT);
 export const MOCK_COMMENTS = generateMockComments(MOCK_TICKETS);
 export const MOCK_ACTIVITY_EVENTS = generateMockActivityEvents(MOCK_TICKETS);
 export const MOCK_AGENTS: User[] = MOCK_USERS;
-export const CATEGORIES_LIST = CATEGORIES;
+// Kept for backward compatibility; the canonical list lives in src/constants.
+export { TICKET_CATEGORIES as CATEGORIES_LIST } from "../constants";

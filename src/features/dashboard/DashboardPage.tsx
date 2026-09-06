@@ -6,18 +6,40 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Spinner } from "../../components/ui/Spinner";
+import { AssignedTicketsCard } from "./AssignedTicketsCard";
 import { computeMetrics, formatDuration } from "../../utils/metrics";
 import { isTicketOverdue, getSLAStatus } from "../../utils/ticketHelpers";
+import { DashboardTicketCard } from "../../components/ui/MUICard";
 
 export const DashboardPage: React.FC = () => {
   const { tickets, loadState, errorMessage, refresh } = useTickets();
   const { currentUser } = useUser();
+  const getSlaBadge = (ticket: Parameters<typeof getSLAStatus>[0]) => {
+    const sla = getSLAStatus(ticket);
+    if (sla === "overdue") return <Badge variant="danger">Overdue</Badge>;
+    if (sla === "due-soon") return <Badge variant="warning">Due Soon</Badge>;
+    if (sla === "completed") return <Badge variant="default">Completed</Badge>;
+    return <Badge variant="success">On Track</Badge>;
+  };
 
   const metrics = computeMetrics(tickets);
 
   const criticalOverdueTickets = tickets
     .filter((t) => isTicketOverdue(t) || getSLAStatus(t) === "due-soon")
     .slice(0, 5);
+
+  const getPriorityVariant = (priority: string) => {
+    switch (priority) {
+      case "critical":
+        return "danger";
+      case "high":
+        return "warning";
+      case "medium":
+        return "info";
+      default:
+        return "default";
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -88,6 +110,9 @@ export const DashboardPage: React.FC = () => {
               </p>
             </Card>
           </div>
+
+          {/* 1.5 My Tickets (assigned to me, needing attention) */}
+          <AssignedTicketsCard />
 
           {/* 2. Status Breakdown & Critical Alerts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -163,46 +188,52 @@ export const DashboardPage: React.FC = () => {
               {criticalOverdueTickets.length > 0 ? (
                 <ul className="space-y-3">
                   {criticalOverdueTickets.map((ticket) => {
-                    const isOverdue = isTicketOverdue(ticket);
+                    // const isOverdue = isTicketOverdue(ticket);
                     return (
-                      <li
-                        key={ticket.id}
-                        className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Link
-                              to={`/tickets/${ticket.id}`}
-                              className="font-mono text-xs font-bold text-blue-600 hover:underline"
-                            >
-                              {ticket.id}
-                            </Link>
-                            <span className="text-sm font-semibold text-gray-900">
-                              {ticket.subject}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Priority:{" "}
-                            <span className="capitalize font-medium">
-                              {ticket.priority}
-                            </span>
-                          </p>
-                        </div>
+                      // <li
+                      //   key={ticket.id}
+                      //   className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors"
+                      // >
+                      //   <div className="space-y-1">
+                      //     <div className="flex items-center gap-2">
+                      //       <Link
+                      //         to={`/tickets/${ticket.id}`}
+                      //         className="font-mono text-xs font-bold text-blue-600 hover:underline"
+                      //       >
+                      //         {ticket.id}
+                      //       </Link>
+                      //       <span className="text-sm font-semibold text-gray-900">
+                      //         {ticket.subject}
+                      //       </span>
+                      //     </div>
+                      //     <p className="text-xs text-gray-500">
+                      //       Priority:{" "}
+                      //       <span className="capitalize font-medium">
+                      //         {ticket.priority}
+                      //       </span>
+                      //     </p>
+                      //   </div>
 
-                        <div className="flex items-center gap-2">
-                          {isOverdue ? (
-                            <Badge variant="danger">Overdue</Badge>
-                          ) : (
-                            <Badge variant="warning">Due Soon</Badge>
-                          )}
-                          <Link
-                            to={`/tickets/${ticket.id}`}
-                            className="text-xs font-medium text-blue-600 hover:underline ml-2"
-                          >
-                            View
-                          </Link>
-                        </div>
-                      </li>
+                      //   <div className="flex items-center gap-2">
+                      //     {isOverdue ? (
+                      //       <Badge variant="danger">Overdue</Badge>
+                      //     ) : (
+                      //       <Badge variant="warning">Due Soon</Badge>
+                      //     )}
+                      //     <Link
+                      //       to={`/tickets/${ticket.id}`}
+                      //       className="text-xs font-medium text-blue-600 hover:underline ml-2"
+                      //     >
+                      //       View
+                      //     </Link>
+                      //   </div>
+                      // </li>
+                      <DashboardTicketCard
+                        key={ticket.id}
+                        ticket={ticket}
+                        slaBadge={getSlaBadge(ticket)}
+                        priorityBadge={getPriorityVariant(ticket.priority)}
+                      />
                     );
                   })}
                 </ul>

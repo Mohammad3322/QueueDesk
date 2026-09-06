@@ -1,12 +1,8 @@
-import type { Ticket, TicketPriority } from "../types";
+import type { Ticket } from "../types";
+import { SLA_DUE_SOON_MINUTES } from "../constants";
 
-// أوزان ترتيب الأولوية حسب المتطلبات (Critical > High > Medium > Low)
-export const PRIORITY_WEIGHTS: Record<TicketPriority, number> = {
-  low: 1,
-  medium: 2,
-  high: 3,
-  critical: 4,
-};
+// Re-exported so existing importers (pipeline, tests) keep working from one place.
+export { PRIORITY_WEIGHTS } from "../constants";
 
 export const isTicketOverdue = (ticket: Ticket): boolean => {
   if (ticket.status === "resolved" || ticket.status === "closed") {
@@ -25,6 +21,6 @@ export const getSLAStatus = (
     (new Date(ticket.dueAt).getTime() - Date.now()) / (1000 * 60);
 
   if (diffMinutes < 0) return "overdue";
-  if (diffMinutes <= 60) return "due-soon";
+  if (diffMinutes <= SLA_DUE_SOON_MINUTES) return "due-soon";
   return "on-track";
 };

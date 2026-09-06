@@ -1,25 +1,74 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useUser } from "../hooks/useUser";
+import { useNotifications } from "../hooks/useNotifications";
 import { canManageUsers, canViewAnalytics } from "../utils/permissions";
+import { APP_ROUTES } from "../constants";
+import AutoAwesomeMotionIcon from "@mui/icons-material/AutoAwesomeMotion";
+import AddBoxIcon from "@mui/icons-material/AddBox";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import PeopleIcon from "@mui/icons-material/People";
+
+interface NavItem {
+  label: string;
+  path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  badge?: number;
+}
 
 export const Sidebar: React.FC = () => {
   const { currentUser } = useUser();
+  const { unreadCountFor } = useNotifications();
+  const unread = unreadCountFor(currentUser.id);
 
-  const navItems = [
-    { label: "Dashboard", path: "/", icon: "▦" },
-    { label: "Tickets", path: "/tickets", icon: "☰" },
-    { label: "New Ticket", path: "/tickets/new", icon: "＋" },
+  const navItems: NavItem[] = [
+    {
+      label: "Dashboard",
+      path: APP_ROUTES.dashboard,
+      icon: <DashboardIcon />,
+    },
+    {
+      label: "Tickets",
+      path: APP_ROUTES.tickets,
+      icon: <AutoAwesomeMotionIcon />,
+    },
+    { label: "New Ticket", path: APP_ROUTES.newTicket, icon: <AddBoxIcon /> },
     ...(canViewAnalytics(currentUser)
-      ? [{ label: "Analytics", path: "/analytics", icon: "📊" }]
+      ? [
+          {
+            label: "Analytics",
+            path: APP_ROUTES.analytics,
+            icon: <AnalyticsIcon />,
+          },
+        ]
       : []),
   ];
 
-  const accountItems = [
+  const accountItems: NavItem[] = [
+    {
+      label: "Notifications",
+      path: APP_ROUTES.notifications,
+      icon: <NotificationsIcon />,
+      badge: unread > 0 ? unread : undefined,
+    },
     ...(canManageUsers(currentUser)
-      ? [{ label: "Team & Roles", path: "/users", icon: "⚙" }]
+      ? [
+          {
+            label: "Team & Roles",
+            path: APP_ROUTES.users,
+            icon: <PeopleIcon />,
+          },
+        ]
       : []),
-    { label: "My Account", path: "/account", icon: "◉" },
+    {
+      label: "My Account",
+      path: APP_ROUTES.account,
+      icon: <AccountCircleIcon />,
+    },
   ];
 
   return (
@@ -62,6 +111,14 @@ export const Sidebar: React.FC = () => {
                 {item.icon}
               </span>
               {item.label}
+              {item.badge !== undefined && (
+                <span
+                  className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-blue-600 text-white text-xs font-bold"
+                  aria-label={`${item.badge} unread`}
+                >
+                  {item.badge}
+                </span>
+              )}
             </NavLink>
           ))}
         </div>

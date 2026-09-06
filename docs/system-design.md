@@ -2,9 +2,19 @@
 
 ## 1. Problem Statement
 
-Support operations at a small SaaS company currently run on spreadsheets, email, and informal chat. This causes missed tickets, inconsistent SLA handling, unclear ownership, and weak metrics. QueueDesk replaces this with a dedicated browser application for ticket triage, assignment, workflow, and analytics.
+QueueDesk is a browser-based customer-support operations application for a small SaaS company.
+The company currently manages customer issues using spreadsheets, email, and informal communication between support agents.This causes:
+• Tickets are missed or forgotten.
+• Urgent requests are not consistently prioritized.
+• Ownership is unclear.
+• SLA deadlines are missed.
+• Managers cannot quickly understand team workload.
+• Historical tickets are difficult to search.
+• Support metrics are weak or unavailable.
+• Workflow rules are inconsistently applied.
+QueueDesk replaces that fragmented workflow with a centralized operational interface.
 
-**Out of scope**: real OAuth, a full production backend, email ingestion, customer chat, payments, AI, microservices, and elaborate notification infrastructure (README §14.3).
+**Out of scope**: real OAuth, a full production backend, email ingestion, customer chat, payments, AI, microservices, and elaborate notification infrastructure.
 
 ## 2. Functional Requirements
 
@@ -28,16 +38,16 @@ Support operations at a small SaaS company currently run on spreadsheets, email,
 
 ## 4. Scale Assumptions
 
-| Dimension        | Assumption                            |
-| :--------------- | :------------------------------------ |
-| Support staff    | ~20                                   |
-| Customers        | ~2,000                                |
-| Tickets / day    | 100–300                               |
-| Active tickets   | ~2,000                                |
-| Historical       | 100,000+ (discussion only)            |
-| Comments/ticket  | 1–20                                  |
+| Dimension       | Assumption                 |
+| :-------------- | :------------------------- |
+| Support staff   | ~20                        |
+| Customers       | ~2,000                     |
+| Tickets / day   | 100–300                    |
+| Active tickets  | ~2,000                     |
+| Historical      | 100,000+ (discussion only) |
+| Comments/ticket | 1–20                       |
 
-Portfolio dataset: 75 tickets, 20 customers, 4 users (README §7.1).
+Portfolio dataset: 75 tickets, 20 customers, 4 users.
 
 ## 5. Core Entities
 
@@ -51,16 +61,16 @@ Relationships: Ticket → Customer (by `customerId`), Ticket → User (assignee,
 
 ## 6. State Ownership
 
-| State            | Owner          | Persisted | Notes                              |
-| :--------------- | :------------- | :-------- | :--------------------------------- |
-| Current user     | UserContext    | No        | App-wide; simulated persona        |
-| Tickets data     | TicketContext  | Session   | Loaded from `ticketService`        |
-| Comments/events  | TicketContext  | Session   | Vended to activity stream          |
-| Search/filters   | URL state      | Yes       | Shareable, refresh-safe (ADR-001)  |
-| Sort & page size | URL state      | Yes       | Shareable                          |
-| Form input       | Form component | No        | Ephemeral                          |
-| Derived (SLA…)   | Computation    | No        | `getSLAStatus()` / `isTicketOverdue()` (ADR-002) |
-| Load state       | TicketContext  | No        | loading/success/error               |
+| State            | Owner          | Persisted | Notes                                  |
+| :--------------- | :------------- | :-------- | :------------------------------------- |
+| Current user     | UserContext    | No        | App-wide; simulated persona            |
+| Tickets data     | TicketContext  | Session   | Loaded from `ticketService`            |
+| Comments/events  | TicketContext  | Session   | Vended to activity stream              |
+| Search/filters   | URL state      | Yes       | Shareable, refresh-safe (ADR-001)      |
+| Sort & page size | URL state      | Yes       | Shareable                              |
+| Form input       | Form component | No        | Ephemeral                              |
+| Derived (SLA…)   | Computation    | No        | `getSLAStatus()` / `isTicketOverdue()` |
+| Load state       | TicketContext  | No        | loading/success/error                  |
 
 ## 7. Architecture
 
@@ -101,15 +111,15 @@ Client (portfolio scale): search, filters, sorting, pagination — a pure derive
 
 ## 12. Failure Modes
 
-| Failure                | User sees                    | Retry?                            |
-| :--------------------- | :--------------------------- | :-------------------------------- |
-| Tickets fail to load   | Error EmptyState             | Manual "Retry" → refresh          |
-| Ticket update fails    | Optimistic-in-place state    | Reopen edit / manual reload       |
-| Missing customer       | "N/A" placeholders           | No                                |
-| Comment submit fails   | Inline error; input retained | Re-submit                         |
-| Timeout                | Error state                  | Manual retry                      |
-| Invalid ticket ID      | "Ticket Not Found" + back    | Navigate back to list             |
-| Stale async response   | Aborted via AbortController  | N/A                               |
+| Failure              | User sees                    | Retry?                      |
+| :------------------- | :--------------------------- | :-------------------------- |
+| Tickets fail to load | Error EmptyState             | Manual "Retry" → refresh    |
+| Ticket update fails  | Optimistic-in-place state    | Reopen edit / manual reload |
+| Missing customer     | "N/A" placeholders           | No                          |
+| Comment submit fails | Inline error; input retained | Re-submit                   |
+| Timeout              | Error state                  | Manual retry                |
+| Invalid ticket ID    | "Ticket Not Found" + back    | Navigate back to list       |
+| Stale async response | Aborted via AbortController  | N/A                         |
 
 ## 13. Performance Hypotheses (validate with profiling)
 
@@ -127,3 +137,32 @@ Client (portfolio scale): search, filters, sorting, pagination — a pure derive
 
 - UI hiding of manager controls is **not** authorization (README §5.11). A production backend must enforce permissions independently.
 - No secrets or credentials are stored client-side; `.env` holds only non-sensitive feature flags (`VITE_USE_MOCK`, `VITE_API_BASE_URL`, `VITE_FAILURE_RATE`).
+
+## 16. Customer Intake — How Customers Submit Requests
+
+Customers do not log into QueueDesk; they contact the help desk through channels **outside** this application. The app models the *result* of that contact: a customer request is **converted into a `Ticket`** by an agent or manager. Intake sources that map to the `Ticket` domain are:
+
+| Channel (external)            | How it becomes a ticket here                         |
+| :---------------------------- | :--------------------------------------------------- |
+| Email to the support inbox    | A support member creates a ticket and links the customer   |
+| Support web form / widget     | Inbound webhook or form handler calls `createTicket`      |
+| Phone / chat                 | Agent logs the conversation as a new ticket               |
+| CRM / API integration         | `ticketService.createTicket` from the integration layer    |
+
+The end-user UI provided to customers is the **/tickets/new form** — a support member selects the reporting customer (`customerId`), subject, category, priority, optional assignee, and description. On submit the ticket is created at `open` with a 24-hour SLA deadline, and notifications fire (assignment to an agent, new-request alert to managers).
+
+**System-design notes**
+- The customer is modeled by `customerId` reference (not embedded) so one customer can span many tickets (§5).
+- `createTicket` is the single write boundary for intake; notifications are emitted from it (see §17), so any future intake channel (email ingestion, REST POST) gets the same behavior for free.
+- *Explicitly out of scope* (per assignment §14.3): real email ingestion, customer chat server, payments, and AI chatbot.
+
+## 17. Notifications
+
+Replaces the "tickets are missed" business problem with an in-app inbox.
+
+- **Store**: `NotificationsProvider` holds an in-memory `AppNotification[]` (newest first), exposed via `useNotifications`. Dedup by `id`; the daily-summary seed is guarded per manager and per local day.
+- **Assignment** → `ticket-assigned`: emitted in `TicketQuickActions` when a manager assigns a ticket (self-claims are skipped).
+- **New request** → `new-ticket`: emitted in `NewTicketPage` for every manager when a customer request is converted into a ticket; the assignee (if any) also gets `ticket-assigned`.
+- **Daily summary** → `daily-summary`: seeded once per day on app load for each manager from `computeDailySummaryStats` (completed today, new today, active, overdue, critical open, avg resolution).
+- **UI**: `/notifications` page (mark-as-read, mark-all, unread dot), header bell with unread count, sidebar + mobile "Alerts" nav.
+- **Trust boundary**: client-side notification recipients are informational only; server-side enforcement would be required in production (§15).

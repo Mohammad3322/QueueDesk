@@ -7,6 +7,14 @@ import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
 import { Select } from "../../components/ui/Select";
 import { useUser } from "../../hooks/useUser";
+import { useNotifications } from "../../hooks/useNotifications";
+import { buildTicketAssignedNotification } from "../../utils/notifications";
+import {
+  TICKET_PRIORITIES,
+  TICKET_PRIORITY_LABELS,
+  TICKET_STATUSES,
+  TICKET_STATUS_LABELS,
+} from "../../constants";
 import {
   canAssignTicket,
   canChangePriority,
@@ -22,19 +30,16 @@ const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   closed: ["open"],
 };
 
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: "open", label: "Open" },
-  { value: "in-progress", label: "In Progress" },
-  { value: "waiting-on-customer", label: "Waiting on Customer" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
-];
+const STATUS_OPTIONS: { value: string; label: string }[] = TICKET_STATUSES.map(
+  (status) => ({ value: status, label: TICKET_STATUS_LABELS[status] }),
+);
 
 export const TicketQuickActions: React.FC<{ ticket: Ticket }> = ({
   ticket,
 }) => {
   const { updateTicket, addActivityEvent } = useTickets();
   const { currentUser } = useUser();
+  const { addNotification } = useNotifications();
 
   const isEditable = canEditTicket(currentUser, ticket);
   const canAssign = canAssignTicket(currentUser);
@@ -82,6 +87,9 @@ export const TicketQuickActions: React.FC<{ ticket: Ticket }> = ({
   };
 
   const handleAssigneeChange = (assigneeId: string) => {
+    const assignee = assigneeId
+      ? MOCK_USERS.find((u) => u.id === assigneeId)
+      : undefined;
     updateTicket(ticket.id, { assigneeId: assigneeId || undefined });
     addActivityEvent({
       id: `evt-${Date.now()}`,
@@ -91,6 +99,17 @@ export const TicketQuickActions: React.FC<{ ticket: Ticket }> = ({
       createdAt: new Date().toISOString(),
       metadata: { assigneeId: assigneeId || undefined },
     });
+
+    // Notify the newly assigned agent (skip self-claims and no-ops).
+    if (assignee && assigneeId !== currentUser.id) {
+      addNotification(
+        buildTicketAssignedNotification({
+          ticket,
+          assignee,
+          actorName: currentUser.name,
+        }),
+      );
+    }
   };
 
   if (!isEditable) {
@@ -157,25 +176,14 @@ export const TicketQuickActions: React.FC<{ ticket: Ticket }> = ({
             handlePriorityChange(e.target.value as TicketPriority)
           }
         >
-          {(
-            [
-              { value: "low", label: "Low" },
-              { value: "medium", label: "Medium" },
-              { value: "high", label: "High" },
-              { value: "critical", label: "Critical" },
-            ] as { value: TicketPriority; label: string }[]
-          )
-            .filter(
-              (p) =>
-                p.value === ticket.priority ||
-                p.value !== "critical" ||
-                canChangeCritical,
-            )
-            .map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
+          {TICKET_PRIORITIES.filter(
+            (p) =>
+              p === ticket.priority || p !== "critical" || canChangeCritical,
+          ).map((p) => (
+            <option key={p} value={p}>
+              {TICKET_PRIORITY_LABELS[p]}
+            </option>
+          ))}
         </Select>
         {!canChangeCritical && (
           <p className="mt-1 text-xs text-gray-500">

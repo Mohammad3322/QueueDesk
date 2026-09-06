@@ -4,13 +4,38 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, it, expect, vi } from "vitest";
 import { TicketQuickActions } from "./TicketQuickActions";
 import { UserProvider } from "../users/UserContext";
+import { UsersProvider } from "../users/UsersProvider";
 import { TicketProvider } from "./TicketContext";
+import { NotificationsProvider } from "../notifications/NotificationsProvider";
 import { useUser } from "../../hooks/useUser";
 import type { Ticket, User } from "../../types";
 
 vi.mock("../../services/api/ticketService", () => ({
   ticketService: {
     getTickets: vi.fn().mockResolvedValue([]),
+  },
+}));
+
+vi.mock("../../services/api/userService", () => ({
+  userService: {
+    getUsers: vi.fn().mockResolvedValue([
+      {
+        id: "usr-1",
+        name: "Sarah Connor",
+        email: "sarah@q.com",
+        role: "manager",
+      },
+      { id: "usr-2", name: "Alex Mercer", email: "alex@q.com", role: "agent" },
+      {
+        id: "usr-3",
+        name: "Elena Fisher",
+        email: "elena@q.com",
+        role: "agent",
+      },
+    ]),
+    createUser: vi.fn(),
+    updateUser: vi.fn(),
+    deleteUser: vi.fn(),
   },
 }));
 
@@ -41,9 +66,13 @@ const renderQuickActions = (user: User, seeded: Ticket = ticket) => {
     <MemoryRouter>
       <UserProvider>
         <UserSetter currentUser={user} />
-        <TicketProvider>
-          <TicketQuickActions ticket={seeded} />
-        </TicketProvider>
+        <UsersProvider>
+          <TicketProvider>
+            <NotificationsProvider>
+              <TicketQuickActions ticket={seeded} />
+            </NotificationsProvider>
+          </TicketProvider>
+        </UsersProvider>
       </UserProvider>
     </MemoryRouter>,
   );

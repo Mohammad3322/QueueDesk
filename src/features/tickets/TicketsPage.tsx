@@ -15,6 +15,7 @@ import { ticketService } from "../../services/api/ticketService";
 import { getSLAStatus } from "../../utils/ticketHelpers";
 import { useUser } from "../../hooks/useUser";
 import { canDeleteTickets } from "../../utils/permissions";
+import { TicketCard } from "../../components/ui/MuiMCard";
 
 export const TicketsPage: React.FC = () => {
   const { currentUser } = useUser();
@@ -145,7 +146,7 @@ export const TicketsPage: React.FC = () => {
           <div className="hidden md:block bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <tr className="bg-gray-50 w-full border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <th className="py-3 px-4">ID</th>
                   <th className="py-3 px-4">Subject</th>
                   <th className="py-3 px-4">Customer</th>
@@ -218,49 +219,58 @@ export const TicketsPage: React.FC = () => {
           {/* Mobile cards */}
           <div className="grid grid-cols-1 gap-3 md:hidden">
             {tickets.map((ticket) => (
-              <div
+              // <div
+              //   key={ticket.id}
+              //   className="bg-white p-4 rounded-xl border border-gray-200 space-y-3"
+              // >
+              //   <div className="flex items-center justify-between">
+              //     <span className="font-mono text-xs font-bold text-blue-600">
+              //       {ticket.id}
+              //     </span>
+              //     {getSlaBadge(ticket)}
+              //   </div>
+              //   <Link
+              //     to={`/tickets/${ticket.id}`}
+              //     className="font-semibold text-gray-900 block hover:underline"
+              //   >
+              //     {ticket.subject}
+              //   </Link>
+              //   <div className="flex items-center justify-between text-xs text-gray-500 border-t border-gray-100 pt-2">
+              //     <Link
+              //       to={`/customers/${ticket.customerId}`}
+              //       className="hover:text-blue-600 hover:underline"
+              //     >
+              //       {getCustomerName(ticket.customerId)}
+              //     </Link>
+              //     <div className="flex items-center gap-2">
+              //       <Badge variant={getPriorityVariant(ticket.priority)}>
+              //         {ticket.priority}
+              //       </Badge>
+              //       {canDelete && (
+              //         <Button
+              //           variant="outline"
+              //           size="sm"
+              //           aria-label={`Delete ${ticket.id}`}
+              //           onClick={() => {
+              //             setPendingDelete(ticket.id);
+              //             setDeleteError(null);
+              //           }}
+              //         >
+              //           Delete
+              //         </Button>
+              //       )}
+              //     </div>
+              //   </div>
+              // </div>
+              <TicketCard
                 key={ticket.id}
-                className="bg-white p-4 rounded-xl border border-gray-200 space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-blue-600">
-                    {ticket.id}
-                  </span>
-                  {getSlaBadge(ticket)}
-                </div>
-                <Link
-                  to={`/tickets/${ticket.id}`}
-                  className="font-semibold text-gray-900 block hover:underline"
-                >
-                  {ticket.subject}
-                </Link>
-                <div className="flex items-center justify-between text-xs text-gray-500 border-t border-gray-100 pt-2">
-                  <Link
-                    to={`/customers/${ticket.customerId}`}
-                    className="hover:text-blue-600 hover:underline"
-                  >
-                    {getCustomerName(ticket.customerId)}
-                  </Link>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getPriorityVariant(ticket.priority)}>
-                      {ticket.priority}
-                    </Badge>
-                    {canDelete && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        aria-label={`Delete ${ticket.id}`}
-                        onClick={() => {
-                          setPendingDelete(ticket.id);
-                          setDeleteError(null);
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
+                ticket={ticket}
+                customerName={getCustomerName(ticket.customerId)}
+                slaBadge={getSlaBadge(ticket)}
+                priorityBadge={getPriorityVariant(ticket.priority)}
+                canDelete
+                onDeleteRequest={setPendingDelete}
+              />
             ))}
           </div>
 

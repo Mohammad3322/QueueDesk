@@ -4,7 +4,9 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NewTicketPage } from "./NewTicketPage";
 import { UserProvider } from "../users/UserContext";
+import { UsersProvider } from "../users/UsersProvider";
 import { TicketProvider } from "./TicketContext";
+import { NotificationsProvider } from "../notifications/NotificationsProvider";
 
 vi.mock("../../services/api/ticketService", () => ({
   ticketService: {
@@ -12,16 +14,51 @@ vi.mock("../../services/api/ticketService", () => ({
   },
 }));
 
+vi.mock("../../services/api/userService", () => ({
+  userService: {
+    getUsers: vi.fn().mockResolvedValue([
+      {
+        id: "usr-1",
+        name: "Sarah Connor",
+        email: "sarah@queuedesk.com",
+        role: "manager",
+      },
+      {
+        id: "usr-2",
+        name: "Alex Mercer",
+        email: "alex@queuedesk.com",
+        role: "agent",
+      },
+      {
+        id: "usr-3",
+        name: "Elena Fisher",
+        email: "elena@queuedesk.com",
+        role: "agent",
+      },
+    ]),
+    createUser: vi.fn(),
+    updateUser: vi.fn(),
+    deleteUser: vi.fn(),
+  },
+}));
+
 function renderCreatePage() {
   return render(
     <MemoryRouter initialEntries={["/tickets/new"]}>
       <UserProvider>
-        <TicketProvider>
-          <Routes>
-            <Route path="/tickets/new" element={<NewTicketPage />} />
-            <Route path="/tickets/:ticketId" element={<div>Detail page</div>} />
-          </Routes>
-        </TicketProvider>
+        <UsersProvider>
+          <TicketProvider>
+            <NotificationsProvider>
+              <Routes>
+                <Route path="/tickets/new" element={<NewTicketPage />} />
+                <Route
+                  path="/tickets/:ticketId"
+                  element={<div>Detail page</div>}
+                />
+              </Routes>
+            </NotificationsProvider>
+          </TicketProvider>
+        </UsersProvider>
       </UserProvider>
     </MemoryRouter>,
   );

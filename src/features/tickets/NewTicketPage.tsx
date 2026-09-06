@@ -1,17 +1,30 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTickets } from "../../hooks/useTickets";
+import { useUser } from "../../hooks/useUser";
+import { useUsers } from "../../hooks/useUsers";
+import { useNotifications } from "../../hooks/useNotifications";
+import { canManageUsers } from "../../utils/permissions";
 import {
-  MOCK_CUSTOMERS,
-  CATEGORIES_LIST,
-  MOCK_AGENTS,
-} from "../../mocks/generator";
+  buildNewTicketNotification,
+  buildTicketAssignedNotification,
+} from "../../utils/notifications";
+import { MOCK_CUSTOMERS } from "../../mocks/generator";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { TextArea } from "../../components/ui/TextArea";
 import { Select } from "../../components/ui/Select";
 import { Button } from "../../components/ui/Button";
 import type { TicketPriority } from "../../types";
+import {
+  DEFAULT_TAG,
+  DEFAULT_TICKET_CATEGORY,
+  DEFAULT_TICKET_PRIORITY,
+  DESCRIPTION_MIN_LENGTH,
+  SUBJECT_MAX_LENGTH,
+  SUBJECT_MIN_LENGTH,
+  TICKET_CATEGORIES,
+} from "../../constants";
 
 interface FormErrors {
   customerId?: string;
@@ -20,19 +33,20 @@ interface FormErrors {
   category?: string;
 }
 
-const SUBJECT_MIN = 5;
-const SUBJECT_MAX = 120;
-const DESCRIPTION_MIN = 20;
-
 export const NewTicketPage: React.FC = () => {
   const navigate = useNavigate();
   const { tickets, createTicket } = useTickets();
+  const { currentUser } = useUser();
+  const { users } = useUsers();
+  const { addNotification } = useNotifications();
 
   const [customerId, setCustomerId] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Bug Report");
-  const [priority, setPriority] = useState<TicketPriority>("medium");
+  const [category, setCategory] = useState(DEFAULT_TICKET_CATEGORY);
+  const [priority, setPriority] = useState<TicketPriority>(
+    DEFAULT_TICKET_PRIORITY,
+  );
   const [assigneeId, setAssigneeId] = useState("");
   const [tags, setTags] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
@@ -45,15 +59,15 @@ export const NewTicketPage: React.FC = () => {
     }
     if (!subject.trim()) {
       newErrors.subject = "Subject is required";
-    } else if (subject.trim().length < SUBJECT_MIN) {
-      newErrors.subject = `Subject must be at least ${SUBJECT_MIN} characters`;
-    } else if (subject.trim().length > SUBJECT_MAX) {
-      newErrors.subject = `Subject must be at most ${SUBJECT_MAX} characters`;
+    } else if (subject.trim().length < SUBJECT_MIN_LENGTH) {
+      newErrors.subject = `Subject must be at least ${SUBJECT_MIN_LENGTH} characters`;
+    } else if (subject.trim().length > SUBJECT_MAX_LENGTH) {
+      newErrors.subject = `Subject must be at most ${SUBJECT_MAX_LENGTH} characters`;
     }
     if (!description.trim()) {
       newErrors.description = "Description is required";
-    } else if (description.trim().length < DESCRIPTION_MIN) {
-      newErrors.description = `Description must be at least ${DESCRIPTION_MIN} characters`;
+    } else if (description.trim().length < DESCRIPTION_MIN_LENGTH) {
+      newErrors.description = `Description must be at least ${DESCRIPTION_MIN_LENGTH} characters`;
     }
     if (!category) {
       newErrors.category = "Category is required";
@@ -85,13 +99,42 @@ export const NewTicketPage: React.FC = () => {
             .split(",")
             .map((t) => t.trim())
             .filter(Boolean)
-        : ["support"],
+        : [DEFAULT_TAG],
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
       dueAt,
     };
 
     createTicket(newTicket);
+
+    const customer = MOCK_CUSTOMERS.find((c) => c.id === customerId);
+    const assignee = assigneeId
+      ? users.find((u) => u.id === assigneeId)
+      : undefined;
+
+    // A customer request was received and converted into a ticket: alert every
+    // manager so the new workload is visible immediately.
+    users.filter(canManageUsers).forEach((manager) =>
+      addNotification(
+        buildNewTicketNotification({
+          ticket: newTicket,
+          manager,
+          customerName: customer?.name ?? "A customer",
+        }),
+      ),
+    );
+
+    // If the request was routed to an agent immediately, alert that agent too.
+    if (assignee && assigneeId !== currentUser.id) {
+      addNotification(
+        buildTicketAssignedNotification({
+          ticket: newTicket,
+          assignee,
+          actorName: currentUser.name,
+        }),
+      );
+    }
+
     navigate(`/tickets/${newId}`);
   };
 
@@ -137,7 +180,7 @@ export const NewTicketPage: React.FC = () => {
             onChange={(e) => setSubject(e.target.value)}
             error={errors.subject}
             id="subject"
-            maxLength={SUBJECT_MAX}
+            maxLength={SUBJECT_MAX_LENGTH}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -151,7 +194,7 @@ export const NewTicketPage: React.FC = () => {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
-              {CATEGORIES_LIST.map((cat) => (
+              {TICKET_CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
@@ -186,11 +229,13 @@ export const NewTicketPage: React.FC = () => {
             onChange={(e) => setAssigneeId(e.target.value)}
           >
             <option value="">Unassigned</option>
-            {MOCK_AGENTS.filter((u) => u.role === "agent").map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
+            {users
+              .filter((u) => u.role === "agent")
+              .map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
           </Select>
 
           <TextArea

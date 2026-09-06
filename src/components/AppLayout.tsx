@@ -1,24 +1,62 @@
 import React from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { useUser } from "../hooks/useUser";
 import { canManageUsers, canViewAnalytics } from "../utils/permissions";
+import { APP_ROUTES } from "../constants";
+
+// import BottomNavigation from "@mui/material/BottomNavigation";
+import BottomNavigationAction from "@mui/material/BottomNavigationAction";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import AutoAwesomeMotionIcon from "@mui/icons-material/AutoAwesomeMotion";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import PeopleIcon from "@mui/icons-material/People";
 
 export const AppLayout: React.FC = () => {
+  // const [value, setValue] = React.useState("dashboard");
+
+  // const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  //   setValue(newValue);
+  // };
+
   const { currentUser } = useUser();
 
   const mobileNav = [
-    { label: "Home", path: "/", end: true },
-    { label: "Tickets", path: "/tickets" },
-    { label: "New", path: "/tickets/new" },
+    {
+      label: "Dashboard",
+      path: APP_ROUTES.dashboard,
+      end: true,
+      icon: <DashboardIcon />,
+    },
+    {
+      label: "Tickets",
+      path: APP_ROUTES.tickets,
+      icon: <AutoAwesomeMotionIcon />,
+    },
+
+    { label: "New", path: APP_ROUTES.newTicket, icon: <AddCircleIcon /> },
+    {
+      label: "Alerts",
+      path: APP_ROUTES.notifications,
+      icon: <NotificationsIcon />,
+    },
     ...(canViewAnalytics(currentUser)
-      ? [{ label: "Analytics", path: "/analytics" }]
+      ? [
+          {
+            label: "Analytics",
+            path: APP_ROUTES.analytics,
+            icon: <AnalyticsIcon />,
+          },
+        ]
       : []),
     ...(canManageUsers(currentUser)
-      ? [{ label: "Users", path: "/users" }]
+      ? [{ label: "Users", path: APP_ROUTES.users, icon: <PeopleIcon /> }]
       : []),
-    { label: "Account", path: "/account" },
+    { label: "Account", path: APP_ROUTES.account, icon: <AccountCircleIcon /> },
   ];
 
   return (
@@ -50,10 +88,33 @@ export const AppLayout: React.FC = () => {
               }`
             }
           >
-            {item.label}
+            <BottomNavigationAction
+              style={{ width: "80%" }}
+              label={item.label}
+              // value="dashboard"
+              icon={item.icon}
+            />
           </NavLink>
         ))}
       </nav>
+      {/* <div className="md:hidden fixed bottom-0 left-0 right-0">
+        <BottomNavigation
+          // sx={{ width: 400 }}
+          style={{ width: "100%" }}
+          value={value}
+          onChange={handleChange}
+        >
+          {mobileNav.map((item) => (
+            <BottomNavigationAction
+              sx={{ width: 5 }}
+              style={{ width: "80%" }}
+              label={item.label}
+              value="dashboard"
+              icon={item.icon}
+            />
+          ))}
+        </BottomNavigation>
+      </div> */}
     </div>
   );
 };

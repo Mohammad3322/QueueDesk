@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { UserProvider } from "./features/users/UserContext";
 import { UsersProvider } from "./features/users/UsersProvider";
 import { TicketProvider } from "./features/tickets/TicketContext";
+import { NotificationsProvider } from "./features/notifications/NotificationsProvider";
+import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import { AppLayout } from "./components/AppLayout";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { TicketsPage } from "./features/tickets/TicketsPage";
@@ -38,34 +40,37 @@ export function App() {
     <UserProvider>
       <UsersProvider>
         <TicketProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<AppLayout />}>
-                <Route index element={<DashboardPage />} />
-                <Route path="tickets" element={<TicketsPage />} />
-                <Route path="tickets/new" element={<NewTicketPage />} />
-                <Route
-                  path="tickets/:ticketId"
-                  element={<TicketDetailPage />}
-                />
-                <Route path="account" element={<AccountPage />} />
-                <Route path="users" element={<UsersPage />} />
-                <Route
-                  path="analytics"
-                  element={
-                    <Suspense fallback={<RouteFallback />}>
-                      <AnalyticsPage />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="customers/:customerId"
-                  element={<CustomerDetailPage />}
-                />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
+          <NotificationsProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<AppLayout />}>
+                  <Route index element={<DashboardPage />} />
+                  <Route path="tickets" element={<TicketsPage />} />
+                  <Route path="tickets/new" element={<NewTicketPage />} />
+                  <Route
+                    path="tickets/:ticketId"
+                    element={<TicketDetailPage />}
+                  />
+                  <Route path="notifications" element={<NotificationsPage />} />
+                  <Route path="account" element={<AccountPage />} />
+                  <Route path="users" element={<UsersPage />} />
+                  <Route
+                    path="analytics"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <AnalyticsPage />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="customers/:customerId"
+                    element={<CustomerDetailPage />}
+                  />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </NotificationsProvider>
         </TicketProvider>
       </UsersProvider>
     </UserProvider>

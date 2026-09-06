@@ -1,16 +1,22 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useUser } from "../hooks/useUser";
 import { useUsers } from "../hooks/useUsers";
+import { useNotifications } from "../hooks/useNotifications";
+import { APP_ROUTES } from "../constants";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 
 export const Header: React.FC = () => {
   const { currentUser, setCurrentUser } = useUser();
   const { users } = useUsers();
+  const { unreadCountFor } = useNotifications();
+  const unread = unreadCountFor(currentUser.id);
 
   return (
     <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-30 px-4 sm:px-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <img
-          src="/src/assets/Logo.png"
+          src="/public/Logo.png"
           alt="QueueDesk logo"
           className="w-10 h-10 object-contain"
         />
@@ -38,10 +44,32 @@ export const Header: React.FC = () => {
           >
             {users.map((user) => (
               <option key={user.id} value={user.id}>
-                {user.name} ({user.role.toUpperCase()})
+                {user.name.substring(0, 7)} ({user.role.toUpperCase()})
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to={APP_ROUTES.notifications}
+            aria-label={
+              unread > 0 ? `Notifications, ${unread} unread` : "Notifications"
+            }
+            className="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <span aria-hidden="true" className="text-lg leading-none">
+              <NotificationsIcon />
+            </span>
+            {unread > 0 && (
+              <span
+                className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold"
+                aria-hidden="true"
+              >
+                {unread}
+              </span>
+            )}
+          </Link>
         </div>
 
         <div className="flex items-center gap-2">
