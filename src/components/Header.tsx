@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
     <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-30 px-4 sm:px-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <img
-          src="/public/Logo.png"
+          src="/src/assets/Logo.png"
           alt="QueueDesk logo"
           className="w-10 h-10 object-contain"
         />
