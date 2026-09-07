@@ -12,6 +12,7 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { Spinner } from "../../components/ui/Spinner";
 import { Alert } from "../../components/ui/Alert";
 import { canManageUsers } from "../../utils/permissions";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   manager: "Manager",
@@ -138,11 +139,20 @@ export const UsersPage: React.FC = () => {
           </p>
         </div>
         <Button
-          variant="secondary"
+          variant="primary"
           size="sm"
           onClick={() => setShowForm((s) => !s)}
         >
-          {showForm ? "Close Form" : "+ Add User"}
+          {showForm ? (
+            "Close Form"
+          ) : (
+            <>
+              <span>
+                <AddBoxOutlinedIcon />
+                <p className=" text-xs inline-block m-1">Add User</p>
+              </span>
+            </>
+          )}
         </Button>
       </div>
 
@@ -250,7 +260,7 @@ export const UsersPage: React.FC = () => {
                 </td>
                 <td className="py-3 px-4">
                   <Button
-                    variant="outline"
+                    variant="dangerOutline"
                     size="sm"
                     disabled={isSelf(user)}
                     title={

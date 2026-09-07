@@ -25,6 +25,7 @@ import {
   SUBJECT_MIN_LENGTH,
   TICKET_CATEGORIES,
 } from "../../constants";
+import BackButton from "../../components/ui/BackButton";
 
 interface FormErrors {
   customerId?: string;
@@ -112,8 +113,6 @@ export const NewTicketPage: React.FC = () => {
       ? users.find((u) => u.id === assigneeId)
       : undefined;
 
-    // A customer request was received and converted into a ticket: alert every
-    // manager so the new workload is visible immediately.
     users.filter(canManageUsers).forEach((manager) =>
       addNotification(
         buildNewTicketNotification({
@@ -124,7 +123,6 @@ export const NewTicketPage: React.FC = () => {
       ),
     );
 
-    // If the request was routed to an agent immediately, alert that agent too.
     if (assignee && assigneeId !== currentUser.id) {
       addNotification(
         buildTicketAssignedNotification({
@@ -139,139 +137,140 @@ export const NewTicketPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Link
-          to="/tickets"
-          className="text-xs font-semibold text-gray-500 hover:text-gray-900"
-        >
-          ← Back
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Create New Ticket</h1>
-      </div>
+    <>
+      <Link to="/tickets">
+        <BackButton />
+      </Link>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Create New Ticket
+          </h1>
+        </div>
 
-      <Card>
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <div>
+        <Card>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <div>
+              <Select
+                id="customer"
+                label={
+                  <>
+                    Customer <span className="text-red-500">*</span>
+                  </>
+                }
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
+                error={errors.customerId}
+              >
+                <option value="">Select a customer...</option>
+                {MOCK_CUSTOMERS.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name} ({customer.plan})
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <Input
+              label="Subject"
+              placeholder="Brief description of the issue"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              error={errors.subject}
+              id="subject"
+              maxLength={SUBJECT_MAX_LENGTH}
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Select
+                id="category"
+                label={
+                  <>
+                    Category <span className="text-red-500">*</span>
+                  </>
+                }
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                {TICKET_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </Select>
+
+              <Select
+                id="priority"
+                label={
+                  <>
+                    Priority <span className="text-red-500">*</span>
+                  </>
+                }
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as TicketPriority)}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </Select>
+            </div>
+
             <Select
-              id="customer"
+              id="assignee"
               label={
                 <>
-                  Customer <span className="text-red-500">*</span>
+                  Assignee <span className="text-gray-400">(Optional)</span>
                 </>
               }
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-              error={errors.customerId}
+              value={assigneeId}
+              onChange={(e) => setAssigneeId(e.target.value)}
             >
-              <option value="">Select a customer...</option>
-              {MOCK_CUSTOMERS.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name} ({customer.plan})
-                </option>
-              ))}
+              <option value="">Unassigned</option>
+              {users
+                .filter((u) => u.role === "agent")
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
             </Select>
-          </div>
 
-          <Input
-            label="Subject"
-            placeholder="Brief description of the issue"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            error={errors.subject}
-            id="subject"
-            maxLength={SUBJECT_MAX_LENGTH}
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Select
-              id="category"
+            <TextArea
+              id="description"
               label={
                 <>
-                  Category <span className="text-red-500">*</span>
+                  Description <span className="text-red-500">*</span>
                 </>
               }
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              {TICKET_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </Select>
+              rows={5}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Provide detailed information about the issue..."
+              error={errors.description}
+            />
 
-            <Select
-              id="priority"
-              label={
-                <>
-                  Priority <span className="text-red-500">*</span>
-                </>
-              }
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as TicketPriority)}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </Select>
-          </div>
+            <Input
+              label="Tags (Optional, comma-separated)"
+              placeholder="e.g. billing, urgent, api"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              id="tags"
+            />
 
-          <Select
-            id="assignee"
-            label={
-              <>
-                Assignee <span className="text-gray-400">(Optional)</span>
-              </>
-            }
-            value={assigneeId}
-            onChange={(e) => setAssigneeId(e.target.value)}
-          >
-            <option value="">Unassigned</option>
-            {users
-              .filter((u) => u.role === "agent")
-              .map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-          </Select>
-
-          <TextArea
-            id="description"
-            label={
-              <>
-                Description <span className="text-red-500">*</span>
-              </>
-            }
-            rows={5}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Provide detailed information about the issue..."
-            error={errors.description}
-          />
-
-          <Input
-            label="Tags (Optional, comma-separated)"
-            placeholder="e.g. billing, urgent, api"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            id="tags"
-          />
-
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-            <Link to="/tickets">
-              <Button type="button" variant="outline">
-                Cancel
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+              <Link to="/tickets">
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </Link>
+              <Button type="submit" variant="primary">
+                Create Ticket
               </Button>
-            </Link>
-            <Button type="submit" variant="primary">
-              Create Ticket
-            </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+            </div>
+          </form>
+        </Card>
+      </div>
+    </>
   );
 };

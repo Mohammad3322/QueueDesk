@@ -197,7 +197,7 @@ export const TicketsPage: React.FC = () => {
                     {canDelete && (
                       <td className="py-3 px-4">
                         <Button
-                          variant="outline"
+                          variant="dangerOutline"
                           size="sm"
                           title={`Delete ${ticket.id}`}
                           aria-label={`Delete ${ticket.id}`}

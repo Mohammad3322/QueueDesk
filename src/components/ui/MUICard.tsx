@@ -10,6 +10,8 @@ import Box from "@mui/material/Box";
 import { Link as RouterLink } from "react-router-dom";
 import type { ReactNode } from "react";
 import { Stack } from "@mui/material";
+import { GoButton } from "./GoButton";
+import { APP_ROUTES } from "../../constants";
 
 export type TicketCardTicket = {
   id: string;
@@ -60,7 +62,7 @@ export function DashboardTicketCard({
       >
         <RouterLink
           to={`/tickets/${ticket.id}`}
-          className="font-mono text-xs font-bold text-blue-600 hover:underline"
+          className="font-mono text-xs font-bold text-primary"
         >
           <Typography
             component="span"
@@ -90,9 +92,16 @@ export function DashboardTicketCard({
             fontWeight: 700,
             lineHeight: 1.35,
           }}
+          className="hover:no-underline!"
         >
           {ticket.subject}
         </Link>
+        <RouterLink
+          to={`${APP_ROUTES.tickets}/${ticket.id}`}
+          className="text-xs font-medium text-blue-600 ml-2"
+        >
+          <GoButton child="View" />
+        </RouterLink>
       </CardContent>
 
       <CardActions

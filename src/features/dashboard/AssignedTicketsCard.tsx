@@ -11,6 +11,7 @@ import {
 } from "../../constants";
 import { isTicketOverdue, getSLAStatus } from "../../utils/ticketHelpers";
 import type { Ticket } from "../../types";
+import { GoButton } from "../../components/ui/GoButton";
 
 /**
  * Tickets assigned to the current user that still need their attention
@@ -43,7 +44,7 @@ export const AssignedTicketsCard: React.FC<Props> = ({ className }) => {
 
   return (
     <Card
-      title={`My Tickets — ${assigned.length} need${assigned.length === 1 ? "s" : ""} attention`}
+      title={`My Tickets (${assigned.length} need${assigned.length === 1 ? "s" : ""} attention)`}
       titleStyle={`text-white`}
       className={`space-y-4  ${className}`}
     >
@@ -55,13 +56,13 @@ export const AssignedTicketsCard: React.FC<Props> = ({ className }) => {
             return (
               <li
                 key={ticket.id}
-                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-between p-3 rounded-lg border border-accent bg-gray-50 hover:bg-gray-100 transition-colors"
               >
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <Link
                       to={`${APP_ROUTES.tickets}/${ticket.id}`}
-                      className="font-mono text-xs font-bold text-blue-600 hover:underline"
+                      className="font-mono text-xs font-bold text-primary"
                     >
                       {ticket.id}
                     </Link>
@@ -85,9 +86,9 @@ export const AssignedTicketsCard: React.FC<Props> = ({ className }) => {
                   ) : null}
                   <Link
                     to={`${APP_ROUTES.tickets}/${ticket.id}`}
-                    className="text-xs font-medium text-blue-600 hover:underline ml-2"
+                    className="text-xs font-medium text-blue-600  ml-2"
                   >
-                    View
+                    <GoButton child="View" />
                   </Link>
                 </div>
               </li>

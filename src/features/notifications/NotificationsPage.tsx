@@ -8,6 +8,7 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { NOTIFICATION_TYPE_LABELS } from "../../constants";
 import { formatRelativeTime } from "../../utils/notifications";
 import type { AppNotification, NotificationType } from "../../types";
+import BackButton from "../../components/ui/BackButton";
 
 const NOTIFICATION_BADGE_VARIANTS: Record<
   NotificationType,
@@ -32,46 +33,51 @@ export const NotificationsPage: React.FC = () => {
   const unreadCount = unreadCountFor(currentUser.id);
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-          <p className="text-gray-500 text-sm">
-            {unreadCount > 0
-              ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
-              : "You are all caught up"}
-          </p>
+    <div className="flex flex-col gap-10">
+      <Link to="/">
+        <BackButton />
+      </Link>
+      <div className="space-y-6 max-w-3xl">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+            <p className="text-gray-500 text-sm">
+              {unreadCount > 0
+                ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
+                : "You are all caught up"}
+            </p>
+          </div>
+          {myNotifications.length > 0 && (
+            <Button variant="primary" size="sm" onClick={markAllAsRead}>
+              Mark all as read
+            </Button>
+          )}
         </div>
-        {myNotifications.length > 0 && (
-          <Button variant="outline" size="sm" onClick={markAllAsRead}>
-            Mark all as read
-          </Button>
+
+        {myNotifications.length === 0 ? (
+          <EmptyState
+            title="No notifications"
+            description="Notifications about assigned tickets, new customer requests, and daily summaries will appear here."
+          />
+        ) : (
+          <ul className="space-y-3">
+            {myNotifications.map((notification) => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onOpen={() => markAsRead(notification.id)}
+              />
+            ))}
+          </ul>
+        )}
+
+        {notifications.length > 0 && (
+          <p className="text-xs text-gray-400">
+            Viewing {myNotifications.length} notification
+            {myNotifications.length === 1 ? "" : "s"} for {currentUser.name}.
+          </p>
         )}
       </div>
-
-      {myNotifications.length === 0 ? (
-        <EmptyState
-          title="No notifications"
-          description="Notifications about assigned tickets, new customer requests, and daily summaries will appear here."
-        />
-      ) : (
-        <ul className="space-y-3">
-          {myNotifications.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onOpen={() => markAsRead(notification.id)}
-            />
-          ))}
-        </ul>
-      )}
-
-      {notifications.length > 0 && (
-        <p className="text-xs text-gray-400">
-          Viewing {myNotifications.length} notification
-          {myNotifications.length === 1 ? "" : "s"} for {currentUser.name}.
-        </p>
-      )}
     </div>
   );
 };

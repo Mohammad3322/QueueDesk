@@ -8,6 +8,7 @@ import { TicketActivityStream } from "./TicketActivityStream";
 import { Card } from "../../components/ui/Card";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Spinner } from "../../components/ui/Spinner";
+import BackButton from "../../components/ui/BackButton";
 
 export const TicketDetailPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -43,15 +44,12 @@ export const TicketDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col space-y-6">
+      <Link to="/tickets">
+        <BackButton />
+      </Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link
-            to="/tickets"
-            className="text-xs font-semibold text-gray-500 hover:text-gray-900"
-          >
-            ← Back
-          </Link>
           <h1 className="text-2xl font-bold text-gray-900">{ticket.id}</h1>
           <span className="capitalize text-sm text-gray-500">
             {ticket.category}
