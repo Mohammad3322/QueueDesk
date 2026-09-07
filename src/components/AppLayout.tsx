@@ -84,7 +84,9 @@ export const AppLayout: React.FC = () => {
             end={item.end}
             className={({ isActive }) =>
               `flex flex-col items-center py-2.5 text-[11px] font-medium ${
-                isActive ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
+                isActive
+                  ? "text-bg-primary-600"
+                  : "text-gray-500 hover:text-gray-900"
               }`
             }
           >

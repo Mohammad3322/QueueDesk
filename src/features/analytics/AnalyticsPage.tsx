@@ -84,33 +84,35 @@ export const AnalyticsPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-t-4 border-t-blue-600">
-          <p className="text-xs font-semibold text-gray-500 uppercase">Total</p>
-          <p className="text-3xl font-bold text-gray-900 mt-1">
+        <Card className="border-t-4 border-t-primary group hover:bg-primary transition-colors">
+          <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
+            Total
+          </p>
+          <p className="text-3xl font-bold text-gray-900 mt-1 group-hover:text-white transition-colors">
             {metrics.total}
           </p>
         </Card>
-        <Card className="border-t-4 border-t-yellow-500">
-          <p className="text-xs font-semibold text-gray-500 uppercase">
+        <Card className="border-t-4 border-t-warning group  hover:bg-warning transition-colors">
+          <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
             Critical
           </p>
-          <p className="text-3xl font-bold text-red-600 mt-1">
+          <p className="text-3xl font-bold text-red-600 mt-1 group-hover:text-white transition-colors">
             {metrics.critical}
           </p>
         </Card>
-        <Card className="border-t-4 border-t-red-500">
-          <p className="text-xs font-semibold text-gray-500 uppercase">
+        <Card className="border-t-4 border-t-danger group  hover:bg-danger transition-colors">
+          <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
             Overdue
           </p>
-          <p className="text-3xl font-bold text-red-600 mt-1">
+          <p className="text-3xl font-bold text-red-600 mt-1 group-hover:text-white transition-colors">
             {metrics.overdue}
           </p>
         </Card>
-        <Card className="border-t-4 border-t-green-500">
-          <p className="text-xs font-semibold text-gray-500 uppercase">
+        <Card className="border-t-4 border-t-success group  hover:bg-success transition-colors">
+          <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
             Avg Resolution
           </p>
-          <p className="text-3xl font-bold text-green-600 mt-1">
+          <p className="text-3xl font-bold text-green-600 mt-1 group-hover:text-white transition-colors">
             {metrics.avgResolutionMs !== null
               ? formatDuration(metrics.avgResolutionMs)
               : "—"}
