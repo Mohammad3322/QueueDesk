@@ -10,10 +10,10 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
   ],
-test: {
-    environment: "jsdom",
-    globals: true,
-    css: false,
-    exclude: ["e2e/**", "node_modules/**", "dist/**"],
-  },
+// test: {
+//     environment: "jsdom",
+//     globals: true,
+//     css: false,
+//     exclude: ["e2e/**", "node_modules/**", "dist/**"],
+//   },
 })

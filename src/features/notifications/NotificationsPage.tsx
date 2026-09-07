@@ -90,7 +90,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       <span
         aria-hidden="true"
         className={`w-2 h-2 rounded-full shrink-0 ${
-          notification.read ? "bg-transparent" : "bg-blue-500"
+          notification.read ? "bg-transparent" : "bg-primary"
         }`}
       />
       <div className="flex-1 min-w-0 space-y-0.5">

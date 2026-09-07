@@ -13,14 +13,16 @@ export const Header: React.FC = () => {
   const unread = unreadCountFor(currentUser.id);
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-30 px-4 sm:px-6 flex items-center justify-between">
+    <header className="bg-primary-header bg-op border-b border-gray-200 h-18 fixed top-0 left-0 right-0 z-30 px-4 sm:px-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <img
-          src="/Logo.png"
-          alt="QueueDesk logo"
-          className="w-10 h-10 object-contain"
-        />
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">
+        <div className="flex items-center justify-center w-14 h-14 bg-white rounded-full">
+          <img
+            src="/Logo.png"
+            alt="QueueDesk logo"
+            className="w-10 h-10 object-contain"
+          />
+        </div>
+        <h1 className="text-xl font-bold text-white tracking-tight">
           QueueDesk
         </h1>
       </div>
@@ -65,7 +67,7 @@ export const Header: React.FC = () => {
               const user = users.find((u) => u.id === e.target.value);
               if (user) setCurrentUser(user);
             }}
-            className="text-xs bg-white border border-gray-300 rounded md:px-2 py-1 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[16px] truncate"
+            className="text-xs bg-white border border-gray-300 rounded md:px-2 py-1 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-4 truncate"
           >
             {users.map((user) => (
               <option key={user.id} value={user.id}>
@@ -80,9 +82,9 @@ export const Header: React.FC = () => {
             aria-label={
               unread > 0 ? `Notifications, ${unread} unread` : "Notifications"
             }
-            className="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-600 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <span aria-hidden="true" className="text-lg leading-none">
+            <span aria-hidden="true" className="text-white leading-none">
               <NotificationsIcon />
             </span>
             {unread > 0 && (

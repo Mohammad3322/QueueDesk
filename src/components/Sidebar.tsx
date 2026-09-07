@@ -113,7 +113,7 @@ export const Sidebar: React.FC = () => {
               {item.label}
               {item.badge !== undefined && (
                 <span
-                  className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-blue-600 text-white text-xs font-bold"
+                  className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-white text-xs font-bold"
                   aria-label={`${item.badge} unread`}
                 >
                   {item.badge}

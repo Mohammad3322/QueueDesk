@@ -100,7 +100,7 @@ function mulberry32(seed: number) {
   };
 }
 
-export function generateMockTickets(count: number = 75): Ticket[] {
+export function generateMockTickets(count: number = 2000): Ticket[] {
   const tickets: Ticket[] = [];
   const rand = mulberry32(42);
   const now = Date.now();

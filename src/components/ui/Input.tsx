@@ -32,7 +32,37 @@ export const Input: React.FC<InputProps> = ({
             : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
         } ${className}`}
         {...props}
-      />
+      />{" "}
+      {/* <Autocomplet
+        sx={{ width: 300 }}
+        open={open}
+        onOpen={handleOpen}
+        onClose={handleClose}
+        isOptionEqualToValue={(option, value) => option.title === value.title}
+        getOptionLabel={(option) => option.title}
+        options={options}
+        loading={loading}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Asynchronous"
+            slotProps={{
+              ...params.slotProps,
+              input: {
+                ...params.slotProps.input,
+                endAdornment: (
+                  <React.Fragment>
+                    {loading ? (
+                      <CircularProgress color="inherit" size={20} />
+                    ) : null}
+                    {params.slotProps.input.endAdornment}
+                  </React.Fragment>
+                ),
+              },
+            }}
+          />
+        )}
+      /> */}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );

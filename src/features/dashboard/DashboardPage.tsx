@@ -66,43 +66,43 @@ export const DashboardPage: React.FC = () => {
         />
       ) : (
         <>
-          {/* 1. Metric Cards (KPIs) */}
+          {/* Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="border-l-4 border-l-blue-500">
-              <p className="text-xs font-semibold text-gray-500 uppercase">
+            <Card className=" border-l-4 border-l-primary group hover:bg-primary transition-colors ">
+              <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
                 Total Tickets
               </p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">
+              <p className="text-3xl font-bold text-primary mt-1 group-hover:text-white transition-colors">
                 {metrics.total}
               </p>
             </Card>
 
-            <Card className="border-l-4 border-l-yellow-500">
-              <p className="text-xs font-semibold text-gray-500 uppercase">
+            <Card className="border-l-4 border-l-warning group hover:bg-warning transition-colors">
+              <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
                 Active / Open
               </p>
-              <p className="text-3xl font-bold text-yellow-600 mt-1">
+              <p className="text-3xl font-bold text-yellow-600 mt-1 group-hover:text-white transition-colors">
                 {metrics.open}
               </p>
             </Card>
 
-            <Card className="border-l-4 border-l-red-500">
-              <p className="text-xs font-semibold text-gray-500 uppercase">
+            <Card className="border-l-4 border-l-danger group hover:bg-danger transition-colors">
+              <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
                 SLA Overdue
               </p>
-              <p className="text-3xl font-bold text-red-600 mt-1">
+              <p className="text-3xl font-bold text-red-600 mt-1 group-hover:text-white transition-colors">
                 {metrics.overdue}
               </p>
             </Card>
 
-            <Card className="border-l-4 border-l-green-500">
-              <p className="text-xs font-semibold text-gray-500 uppercase">
+            <Card className="border-l-4 border-l-success group hover:bg-success transition-colors">
+              <p className="text-xs font-semibold text-gray-500 uppercase group-hover:text-white transition-colors">
                 Resolved Today
               </p>
-              <p className="text-3xl font-bold text-green-600 mt-1">
+              <p className="text-3xl font-bold text-green-600 mt-1 group-hover:text-white transition-colors">
                 {metrics.resolvedToday}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1 group-hover:text-white transition-colors">
                 Avg resolution:{" "}
                 {metrics.avgResolutionMs !== null
                   ? formatDuration(metrics.avgResolutionMs)
@@ -112,7 +112,7 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* 1.5 My Tickets (assigned to me, needing attention) */}
-          <AssignedTicketsCard />
+          <AssignedTicketsCard className={`bg-accent`} />
 
           {/* 2. Status Breakdown & Critical Alerts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -127,7 +127,7 @@ export const DashboardPage: React.FC = () => {
                     value:
                       metrics.byStatus.find((d) => d.status === "open")
                         ?.count ?? 0,
-                    color: "bg-blue-600",
+                    color: "bg-primary",
                   },
                   {
                     label: "In Progress",
@@ -183,7 +183,7 @@ export const DashboardPage: React.FC = () => {
 
             <Card
               title="Attention Required (SLA Risk)"
-              className="lg:col-span-2"
+              className="lg:col-span-2 col-span-2"
             >
               {criticalOverdueTickets.length > 0 ? (
                 <ul className="space-y-3">

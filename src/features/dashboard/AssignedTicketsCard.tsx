@@ -30,7 +30,11 @@ const myAttentionTickets = (tickets: Ticket[], userId: string): Ticket[] => {
     );
 };
 
-export const AssignedTicketsCard: React.FC = () => {
+interface Props {
+  className?: string;
+}
+
+export const AssignedTicketsCard: React.FC<Props> = ({ className }) => {
   const { tickets } = useTickets();
   const { currentUser } = useUser();
 
@@ -40,7 +44,8 @@ export const AssignedTicketsCard: React.FC = () => {
   return (
     <Card
       title={`My Tickets — ${assigned.length} need${assigned.length === 1 ? "s" : ""} attention`}
-      className="space-y-4"
+      titleStyle={`text-white`}
+      className={`space-y-4  ${className}`}
     >
       {shown.length > 0 ? (
         <ul className="space-y-3">

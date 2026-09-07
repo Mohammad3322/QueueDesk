@@ -15,6 +15,9 @@
   --color-background: #f8fafc;
   --color-surface: #ffffff;
 
+  /* Header */
+  --color-primary-header: #2563eb99;
+
   /* Text */
   --color-text: #0f172a;
   --color-muted: #64748b;

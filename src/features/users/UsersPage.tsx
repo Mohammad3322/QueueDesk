@@ -241,7 +241,7 @@ export const UsersPage: React.FC = () => {
                       onChange={(e) =>
                         handleRoleChange(user, e.target.value as UserRole)
                       }
-                      className="text-xs px-2 py-1 max-w-[110px]"
+                      className="text-xs px-2 py-1 max-w-27.5"
                     >
                       <option value="agent">Agent</option>
                       <option value="manager">Manager</option>
