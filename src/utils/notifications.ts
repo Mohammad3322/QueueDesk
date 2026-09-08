@@ -73,10 +73,6 @@ export function buildTicketAssignedNotification(params: {
   };
 }
 
-/**
- * Notification sent to every manager when a customer request is received
- * and converted into a ticket.
- */
 export function buildNewTicketNotification(params: {
   id?: string;
   ticket: Ticket;
