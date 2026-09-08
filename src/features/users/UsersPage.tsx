@@ -38,10 +38,12 @@ export const UsersPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("agent");
   const [formErrors, setFormErrors] = useState<{
     name?: string;
     email?: string;
+    pass?: string;
   }>({});
 
   if (!canManageUsers(currentUser)) {
@@ -116,6 +118,7 @@ export const UsersPage: React.FC = () => {
       id,
       name: newName.trim(),
       email: newEmail.trim(),
+      password: newPassword,
       role: newRole,
       avatarUrl: `https://i.pravatar.cc/150?u=${id}`,
     };
@@ -173,6 +176,14 @@ export const UsersPage: React.FC = () => {
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               error={formErrors.email}
+            />
+            <Input
+              id="new-user-pass"
+              label="Password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              error={formErrors.pass}
             />
             <Select
               id="new-user-role"

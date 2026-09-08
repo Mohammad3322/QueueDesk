@@ -37,43 +37,48 @@ function RouteFallback() {
 
 export function App() {
   return (
-    <UserProvider>
-      <UsersProvider>
-        <TicketProvider>
-          <NotificationsProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<AppLayout />}>
-                  <Route index element={<DashboardPage />} />
-                  <Route path="tickets" element={<TicketsPage />} />
-                  <Route path="tickets/new" element={<NewTicketPage />} />
-                  <Route
-                    path="tickets/:ticketId"
-                    element={<TicketDetailPage />}
-                  />
-                  <Route path="notifications" element={<NotificationsPage />} />
-                  <Route path="account" element={<AccountPage />} />
-                  <Route path="users" element={<UsersPage />} />
-                  <Route
-                    path="analytics"
-                    element={
-                      <Suspense fallback={<RouteFallback />}>
-                        <AnalyticsPage />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="customers/:customerId"
-                    element={<CustomerDetailPage />}
-                  />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </NotificationsProvider>
-        </TicketProvider>
-      </UsersProvider>
-    </UserProvider>
+    <>
+      <UserProvider>
+        <UsersProvider>
+          <TicketProvider>
+            <NotificationsProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<AppLayout />}>
+                    <Route index element={<DashboardPage />} />
+                    <Route path="tickets" element={<TicketsPage />} />
+                    <Route path="tickets/new" element={<NewTicketPage />} />
+                    <Route
+                      path="tickets/:ticketId"
+                      element={<TicketDetailPage />}
+                    />
+                    <Route
+                      path="notifications"
+                      element={<NotificationsPage />}
+                    />
+                    <Route path="account" element={<AccountPage />} />
+                    <Route path="users" element={<UsersPage />} />
+                    <Route
+                      path="analytics"
+                      element={
+                        <Suspense fallback={<RouteFallback />}>
+                          <AnalyticsPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="customers/:customerId"
+                      element={<CustomerDetailPage />}
+                    />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Route>
+                </Routes>
+              </BrowserRouter>
+            </NotificationsProvider>
+          </TicketProvider>
+        </UsersProvider>
+      </UserProvider>
+    </>
   );
 }
 

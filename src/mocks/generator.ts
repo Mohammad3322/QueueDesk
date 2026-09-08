@@ -14,30 +14,34 @@ import {
 
 export const MOCK_USERS: User[] = [
   {
-    id: "usr-1",
-    name: "Sarah Connor",
-    email: "sarah@queuedesk.com",
+    id: "user-1",
+    name: "Admin",
+    email: "Admin@queuedesk.com",
+    password: "11111111",
     role: "manager",
     avatarUrl: "https://i.pravatar.cc/150?u=usr-1",
   },
   {
-    id: "usr-2",
-    name: "Alex Mercer",
-    email: "alex@queuedesk.com",
+    id: "user-2",
+    name: "Agent",
+    email: "Agent@queuedesk.com",
+    password: "11111111",
     role: "agent",
     avatarUrl: "https://i.pravatar.cc/150?u=usr-2",
   },
   {
-    id: "usr-3",
+    id: "user-3",
     name: "Elena Fisher",
     email: "elena@queuedesk.com",
+    password: "11111111",
     role: "agent",
     avatarUrl: "https://i.pravatar.cc/150?u=usr-3",
   },
   {
-    id: "usr-4",
+    id: "user-4",
     name: "David Miller",
     email: "david@queuedesk.com",
+    password: "11111111",
     role: "agent",
     avatarUrl: "https://i.pravatar.cc/150?u=usr-4",
   },
@@ -212,7 +216,7 @@ const envStressCount = Number(import.meta.env.VITE_STRESS_TICKETS);
 const MOCK_TICKET_COUNT =
   Number.isFinite(envStressCount) && envStressCount > 0
     ? Math.floor(envStressCount)
-    : 75;
+    : 2133;
 
 export const MOCK_TICKETS = generateMockTickets(MOCK_TICKET_COUNT);
 export const MOCK_COMMENTS = generateMockComments(MOCK_TICKETS);

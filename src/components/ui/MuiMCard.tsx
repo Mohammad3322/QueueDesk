@@ -5,7 +5,10 @@ import CardContent from "@mui/material/CardContent";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+// import Button from "@mui/material/Button";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import { Button as MyButton } from "../../components/ui/Button";
+
 import Box from "@mui/material/Box";
 import { Link as RouterLink } from "react-router-dom";
 // import { Badge } from "./Badge";
@@ -134,26 +137,37 @@ export function TicketCard({
           }}
         >
           {canDelete && (
-            <Button
-              variant="outlined"
-              color="inherit"
-              size="small"
-              aria-label={`Delete ${ticket.id}`}
-              onClick={() => onDeleteRequest(ticket.id)}
-              sx={{
-                minWidth: "auto",
-                color: "text.secondary",
-                borderColor: "divider",
-                textTransform: "none",
-                "&:hover": {
-                  color: "error.main",
-                  borderColor: "error.light",
-                  bgcolor: "error.50",
-                },
-              }}
-            >
-              Delete
-            </Button>
+            <>
+              {/* <Button
+                variant="outlined"
+                color="inherit"
+                size="small"
+                aria-label={`Delete ${ticket.id}`}
+                onClick={() => onDeleteRequest(ticket.id)}
+                sx={{
+                  minWidth: "auto",
+                  color: "text.secondary",
+                  borderColor: "divider",
+                  textTransform: "none",
+                  "&:hover": {
+                    color: "error.main",
+                    borderColor: "error.light",
+                    bgcolor: "error.50",
+                  },
+                }}
+              >
+                Delete
+              </Button> */}
+              <MyButton
+                variant="dangerOutline"
+                size="sm"
+                title={`Delete ${ticket.id}`}
+                aria-label={`Delete ${ticket.id}`}
+                onClick={() => onDeleteRequest(ticket.id)}
+              >
+                <DeleteOutlinedIcon />
+              </MyButton>
+            </>
           )}
         </Stack>
       </CardActions>

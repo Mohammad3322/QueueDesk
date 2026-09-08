@@ -13,7 +13,12 @@ export const AccountPage: React.FC = () => {
 
   const [name, setName] = useState(currentUser.name);
   const [email, setEmail] = useState(currentUser.email);
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [password, setPassword] = useState(currentUser.password);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+  }>({});
   const [saved, setSaved] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,6 +93,14 @@ export const AccountPage: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={errors.email}
+          />
+          <Input
+            id="account-password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={errors.password}
           />
           <div className="flex justify-end pt-2 border-t border-gray-100">
             <Button type="submit" variant="primary">

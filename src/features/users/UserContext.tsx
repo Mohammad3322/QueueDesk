@@ -6,7 +6,7 @@ import { UserContext, type UserContextType } from "./context";
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [currentUser, setCurrentUser] = useState<User>(MOCK_USERS[0]);
+  const [currentUser, setCurrentUser] = useState<User>(MOCK_USERS[1]);
 
   const value: UserContextType = { currentUser, setCurrentUser };
 

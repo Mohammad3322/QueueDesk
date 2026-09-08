@@ -16,6 +16,7 @@ import { getSLAStatus } from "../../utils/ticketHelpers";
 import { useUser } from "../../hooks/useUser";
 import { canDeleteTickets } from "../../utils/permissions";
 import { TicketCard } from "../../components/ui/MuiMCard";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 
 export const TicketsPage: React.FC = () => {
   const { currentUser } = useUser();
@@ -206,7 +207,7 @@ export const TicketsPage: React.FC = () => {
                             setDeleteError(null);
                           }}
                         >
-                          Delete
+                          <DeleteOutlinedIcon />
                         </Button>
                       </td>
                     )}
