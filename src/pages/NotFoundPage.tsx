@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import BackButton from "../components/ui/BackButton";
+import { GoButton } from "../components/ui/GoButton";
 
 export const NotFoundPage: React.FC = () => {
   return (
@@ -10,17 +12,11 @@ export const NotFoundPage: React.FC = () => {
         The page you are looking for does not exist or has moved.
       </p>
       <div className="flex items-center justify-center gap-3">
-        <Link
-          to="/"
-          className="text-sm font-medium text-blue-600 hover:underline"
-        >
-          Back to Dashboard
+        <Link to="/">
+          <BackButton />
         </Link>
-        <Link
-          to="/tickets"
-          className="text-sm font-medium text-blue-600 hover:underline"
-        >
-          View Tickets
+        <Link to="/tickets">
+          <GoButton child="Go" />
         </Link>
       </div>
     </div>

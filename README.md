@@ -31,14 +31,15 @@ It's a single-page app that lets agents and managers see tickets, search and fil
 - **Pagination** — pages you can click through (10 / 20 / 50 per page)
 - **Ticket detail page** — see the description, customer info, SLA status, and activity history
 - **Quick actions** — change status, change priority, assign a ticket (only if allowed)
-- **Create ticket** — a form with real validation (subject 5–120 chars, description at least 20)
+- **Create ticket** — a form with real validation (subject 5–120 chars, description at least 20); pick an existing customer or add a brand-new one inline via "Add New Customer"
+- **Customers** — customer detail pages, plus a customer store that remembers customers you create
 - **Comments & activity** — a timeline of everything that happened to a ticket
 - **Dashboard** — KPI cards showing open/critical/overdue tickets and average resolution time
 - **Analytics page** (manager only) — charts powered by Recharts
-- **Notifications** — you get notified when a ticket is assigned to you, when a new ticket comes in, and managers get a daily summary
+- **Notifications** — you get notified when a ticket is assigned, when a new request comes in, and managers get a daily summary; clicking a "new customer request" notification opens the Add Ticket form with that customer pre-selected
 - **Export to CSV** — download the currently filtered ticket view
 - **Login / Logout** — you must sign in to use the app
-- **Data saved in localStorage** — your session, tickets, and notifications survive a page refresh
+- **Data saved in localStorage** — your session, tickets, customers, and notifications survive a page refresh
 
 ---
 
@@ -86,7 +87,8 @@ The permission rules live in one place — `src/utils/permissions.ts` — so the
 - **React 19** + **TypeScript** — the app itself
 - **Vite** — the dev server and build tool
 - **React Router** — navigation between pages
-- **Tailwind CSS** — styling
+- **Tailwind CSS** — layout and utility styling
+- **MUI (Material UI)** — the form fields, dashboard cards, and the tickets table
 - **Recharts** — the analytics charts
 - **Vitest + Testing Library** — unit and component tests
 - **Playwright** — end-to-end tests
@@ -134,12 +136,13 @@ src/
 ├── features/             # one folder per feature
 │   ├── auth/             # login page
 │   ├── tickets/          # ticket list, detail, create, filters
+│   ├── customers/        # customer store + customer detail page
 │   ├── users/            # login/user context + Team & Roles page
 │   ├── dashboard/        # dashboard page
 │   ├── analytics/        # manager-only charts
 │   ├── account/          # "My Account" page
 │   └── notifications/    # notifications state + page
-├── hooks/                # useUser, useUsers, useTickets, useNotifications
+├── hooks/                # useUser, useUsers, useTickets, useCustomers, useNotifications
 ├── mocks/                # fake data generator (seeded, so it's the same every time)
 ├── services/api/         # the "API" layer (mock + real API + latency simulation)
 ├── types/                # all the TypeScript types (Ticket, User, etc.)
@@ -154,7 +157,7 @@ There's no real backend. Instead:
 
 1. **`src/mocks/generator.ts`** creates ~2,000 fake tickets, 20 customers, and 4 users. It uses a **seeded random generator**, so the data always comes out the same — this keeps screenshots and demos consistent.
 2. **`src/services/api/`** pretends to be a server. It adds a fake 300–1200ms delay (so you can see loading states) and can randomly fail if you turn that on.
-3. When you do things (create a ticket, change its status, etc.), the app updates the data in memory and then **saves it to `localStorage`**, so your changes stick around after a refresh.
+3. When you do things (create a ticket, change its status, etc.), the app updates the data in memory and then **saves it to `localStorage`**, so your changes stick around after a refresh. Customers you create through the ticket form are saved the same way (under `queuedesk_customers`).
 
 If you ever want to hook up a real API, you'd only need to change the files in `services/api/` — the UI wouldn't have to change at all.
 
@@ -207,3 +210,6 @@ The app reads these from a `.env` file (copy `.env.example` to `.env` if you wan
 - The filters/sort/pagination live in the **URL** (e.g. `/tickets?status=open&sort=dueAt&page=2`), so you can bookmark or share a filtered view.
 - All the tricky business logic (filtering, sorting, SLA, permissions, metrics) is written as plain functions in `src/utils/`, so it's easy to test without a browser.
 - The analytics page is loaded lazily — the chart library is only downloaded when a manager actually visits it.
+- Styling is a mix of **Tailwind** (layout, spacing) and **MUI** (form fields, cards, table); the MUI components use the default MUI theme with Tailwind classes for layout.
+- The tickets table has **resizable columns** and horizontal scrolling on narrow screens (cards are used on mobile).
+- A **"new customer request" notification** deep-links to `/tickets/new?customer=<id>` with that customer pre-selected, so the manager can log the request quickly.

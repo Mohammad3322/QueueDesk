@@ -4,9 +4,6 @@ import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { MOCK_AGENTS, CATEGORIES_LIST } from "../../mocks/generator";
 
-const selectCompactClass = "h-[38px]";
-const selectMiniClass = "text-xs px-2.5 py-1.5";
-
 export const TicketFilters: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -48,7 +45,6 @@ export const TicketFilters: React.FC = () => {
         {/* Status filter */}
         <Select
           aria-label="Filter by status"
-          className={selectCompactClass}
           value={status}
           onChange={(e) => updateParam("status", e.target.value)}
         >
@@ -63,7 +59,6 @@ export const TicketFilters: React.FC = () => {
         {/* Priority filter */}
         <Select
           aria-label="Filter by priority"
-          className={selectCompactClass}
           value={priority}
           onChange={(e) => updateParam("priority", e.target.value)}
         >
@@ -77,7 +72,6 @@ export const TicketFilters: React.FC = () => {
         {/* Category filter */}
         <Select
           aria-label="Filter by category"
-          className={selectCompactClass}
           value={category}
           onChange={(e) => updateParam("category", e.target.value)}
         >
@@ -92,7 +86,6 @@ export const TicketFilters: React.FC = () => {
         {/* Assignee filter */}
         <Select
           aria-label="Filter by assignee"
-          className={selectCompactClass}
           value={assignee}
           onChange={(e) => updateParam("assignee", e.target.value)}
         >
@@ -111,7 +104,8 @@ export const TicketFilters: React.FC = () => {
           {/* SLA status filter */}
           <Select
             aria-label="Filter by SLA status"
-            className={selectMiniClass}
+            fullWidth={false}
+            className="w-52"
             value={sla}
             onChange={(e) => updateParam("sla", e.target.value)}
           >
@@ -124,7 +118,8 @@ export const TicketFilters: React.FC = () => {
           {/* Sort */}
           <Select
             aria-label="Sort tickets"
-            className={selectMiniClass}
+            fullWidth={false}
+            className="w-60"
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [s, o] = e.target.value.split("-");

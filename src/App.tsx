@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { UserProvider } from "./features/users/UserContext";
 import { UsersProvider } from "./features/users/UsersProvider";
+import { CustomersProvider } from "./features/customers/CustomersProvider";
 import { TicketProvider } from "./features/tickets/TicketContext";
 import { NotificationsProvider } from "./features/notifications/NotificationsProvider";
 import { NotificationsPage } from "./features/notifications/NotificationsPage";
@@ -42,45 +43,47 @@ export function App() {
     <>
       <UserProvider>
         <UsersProvider>
-          <TicketProvider>
-            <NotificationsProvider>
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="/" element={<AppLayout />}>
-                      <Route index element={<DashboardPage />} />
-                      <Route path="tickets" element={<TicketsPage />} />
-                      <Route path="tickets/new" element={<NewTicketPage />} />
-                      <Route
-                        path="tickets/:ticketId"
-                        element={<TicketDetailPage />}
-                      />
-                      <Route
-                        path="notifications"
-                        element={<NotificationsPage />}
-                      />
-                      <Route path="account" element={<AccountPage />} />
-                      <Route path="users" element={<UsersPage />} />
-                      <Route
-                        path="analytics"
-                        element={
-                          <Suspense fallback={<RouteFallback />}>
-                            <AnalyticsPage />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="customers/:customerId"
-                        element={<CustomerDetailPage />}
-                      />
-                      <Route path="*" element={<NotFoundPage />} />
+          <CustomersProvider>
+            <TicketProvider>
+              <NotificationsProvider>
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route element={<ProtectedRoute />}>
+                      <Route path="/" element={<AppLayout />}>
+                        <Route index element={<DashboardPage />} />
+                        <Route path="tickets" element={<TicketsPage />} />
+                        <Route path="tickets/new" element={<NewTicketPage />} />
+                        <Route
+                          path="tickets/:ticketId"
+                          element={<TicketDetailPage />}
+                        />
+                        <Route
+                          path="notifications"
+                          element={<NotificationsPage />}
+                        />
+                        <Route path="account" element={<AccountPage />} />
+                        <Route path="users" element={<UsersPage />} />
+                        <Route
+                          path="analytics"
+                          element={
+                            <Suspense fallback={<RouteFallback />}>
+                              <AnalyticsPage />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="customers/:customerId"
+                          element={<CustomerDetailPage />}
+                        />
+                        <Route path="*" element={<NotFoundPage />} />
+                      </Route>
                     </Route>
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </NotificationsProvider>
-          </TicketProvider>
+                  </Routes>
+                </BrowserRouter>
+              </NotificationsProvider>
+            </TicketProvider>
+          </CustomersProvider>
         </UsersProvider>
       </UserProvider>
     </>

@@ -6,6 +6,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Spinner } from "../../components/ui/Spinner";
+import { GoButton } from "../../components/ui/GoButton";
 import { AssignedTicketsCard } from "./AssignedTicketsCard";
 import { computeMetrics, formatDuration } from "../../utils/metrics";
 import { isTicketOverdue, getSLAStatus } from "../../utils/ticketHelpers";
@@ -175,9 +176,9 @@ export const DashboardPage: React.FC = () => {
 
               <Link
                 to="/analytics"
-                className="inline-block text-xs font-medium text-blue-600 hover:underline"
+                className="inline-block"
               >
-                View full analytics →
+                <GoButton child="Go" />
               </Link>
             </Card>
 

@@ -17,7 +17,7 @@ The project spec (`discription.text`) explicitly scopes this to **frontend engin
 | Layer   | Choice                                      |
 | ------- | ------------------------------------------- |
 | Build   | Vite 8 + TypeScript 6 (strict)              |
-| UI      | React 19 + Tailwind CSS 4                   |
+| UI      | React 19 + Tailwind CSS 4 + MUI (`@mui/material` 9) |
 | Icons   | MUI Icons (`@mui/icons-material`)           |
 | Charts  | Recharts (lazy-loaded)                      |
 | Routing | React Router 7                              |
@@ -36,7 +36,7 @@ App.tsx             → Provider nesting + all routes
 components/         → App shell (AppLayout, Header, Sidebar) + ui/ primitives
 components/ui/      → Button, Input, Select, Badge, Card, Modal, Spinner, Alert, etc.
 features/           → Feature modules: dashboard, tickets, customers, users, account, auth, analytics, notifications
-hooks/              → useUser, useUsers, useTickets, useNotifications
+hooks/              → useUser, useUsers, useTickets, useCustomers, useNotifications
 mock/               → deterministic mock data generator
 services/api/       → userService, ticketService, mockApi (latency/failure sim)
 types/index.ts      → all domain types
@@ -94,16 +94,17 @@ Browser
 ```tsx
 <UserProvider>                      // 1. current user + auth (outside everything)
   <UsersProvider>                   // 2. full user directory
-    <TicketProvider>                // 3. tickets/comments/activity
-      <NotificationsProvider>       // 4. notifications (needs users + tickets)
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" …/>           // public
-            <Route element={<ProtectedRoute/>}> // auth gate
-              <Route path="/" element={<AppLayout/>}> …all pages…
+    <CustomersProvider>             // 3. customer store (needed by tickets UI)
+      <TicketProvider>              // 4. tickets/comments/activity
+        <NotificationsProvider>     // 5. notifications (needs users + tickets)
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" …/>           // public
+              <Route element={<ProtectedRoute/>}> // auth gate
+                <Route path="/" element={<AppLayout/>}> …all pages…
 ```
 
-**Why this order matters:** `UserProvider` is outermost because _everything_ needs the logged-in user. `NotificationsProvider` is innermost because it derives the manager's daily summary from `useUsers()` and `useTickets()` — so those providers must already be mounted.
+**Why this order matters:** `UserProvider` is outermost because _everything_ needs the logged-in user. `CustomersProvider` sits above `TicketProvider` because tickets pages (list, detail, create) resolve customer names from the store. `NotificationsProvider` is innermost because it derives the manager's daily summary from `useUsers()` and `useTickets()` — so those providers must already be mounted.
 
 ---
 
@@ -131,9 +132,10 @@ This is the answer to "why are filters not context state?": filters live in the 
 
 - `UserProvider` reads `queuedesk_user_id` on mount → if present, restores that user and sets `isAuthenticated = true`. `login()` validates email/password case-insensitively against `MOCK_USERS` and writes the ID; `logout()` removes it.
 - `TicketProvider` seeds from `queuedesk_tickets/comments/activity`, falls back to fetching, and **persists on every mutation via `useEffect`**.
+- `CustomersProvider` seeds from `queuedesk_customers` (merged with the 20 `MOCK_CUSTOMERS`, deduped by ID) and **persists on every mutation**.
 - `NotificationsProvider` seeds from `queuedesk_notifications`.
 
-So user session, tickets, and notifications all survive a refresh.
+So user session, tickets, customers, and notifications all survive a refresh.
 
 ---
 
@@ -259,12 +261,14 @@ This feeds `SLAIndicator` (detail page), the SLA filter, and the overdue metrics
 
 Three notification types: `ticket-assigned`, `new-ticket`, `daily-summary`.
 
-- `buildTicketAssignedNotification` / `buildNewTicketNotification` are **builder functions** — pure, deterministic (given an optional `id`) so they're unit-testable.
+- `buildTicketAssignedNotification` / `buildNewTicketNotification` are **builder functions** — pure, deterministic (given an optional `id`) so they're unit-testable. `buildNewTicketNotification` also stamps `customerId` (from the ticket) onto the notification.
 - `computeDailySummaryStats` derives KPI text for the manager's daily summary (completed/new/active/overdue/critical/avg resolution).
 - The provider seeds **one daily-summary per manager per day**, keyed by `localDateKey` in a `Set`, once users+tickets finish loading — a client-side mock of a scheduled job.
 - `formatRelativeTime` gives "5m ago" etc.
 - Event emission sites call `addNotification(...)`: `TicketQuickActions` on assignment, `NewTicketPage` on creation.
 - Read/unread badge counts flow into `Header` and `Sidebar`.
+
+**Notification → workflow deep-links:** clicking a **"new customer request"** (`new-ticket`) notification routes to the **Add Ticket page** (`/tickets/new?customer=<id>`) with that customer pre-selected, instead of the ticket detail page. The customer is resolved in three tiers (`NotificationsPage.targetHrefFor`): the stored `customerId`, the linked ticket, then — for legacy notifications that predate `customerId` and whose tickets were replaced by the mock dataset — the customer's name parsed out of the message text. This keeps old persisted notifications working after the field was introduced.
 
 ---
 
@@ -284,7 +288,7 @@ Three notification types: `ticket-assigned`, `new-ticket`, `daily-summary`.
 
 **Quick actions** (`TicketQuickActions`): the **status state-machine**. `ALLOWED_TRANSITIONS` explicitly enumerates valid moves (e.g. `open → ["in-progress","closed"]`) and the status dropdown _filters out_ illegal transitions — the spec's "state-transition thinking." Closing requires a confirmation modal. Priority select hides "Critical" for agents. Assignee select offers "Claim" to agents on unassigned tickets. Every action also appends an `ActivityEvent` and fires notifications.
 
-**Create ticket** (`NewTicketPage`): local form state with **field-level validation** (subject 5–120 chars, description ≥20, required customer/category). It generates ID `TICK-1000+n`, sets a 24h SLA due date, calls `createTicket`, builds new-ticket + assignment notifications, then **redirects to the new ticket's detail page** (spec §9.5 prefers redirect-to-detail over staying on the form, so the result is verifiable).
+**Create ticket** (`NewTicketPage`): local form state with **field-level validation** (subject 5–120 chars, description ≥20, required customer/category). The customer picker has an **"Add New Customer"** toggle beside the dropdown that reveals inline new-customer fields (name, email, company, phone, plan) inside a dashed box — validation covers required name, email format, and duplicate-email detection, and `createCustomer` persists to `queuedesk_customers` before the ticket is stored (deduping by email case-insensitively). It generates ID `TICK-1000+n`, sets a 24h SLA due date, calls `createTicket`, builds new-ticket + assignment notifications, then **redirects to the new ticket's detail page** (spec §9.5 prefers redirect-to-detail over staying on the form, so the result is verifiable).
 
 **Account** (`AccountPage`): edit name/email/password (with regex email validation, success alert), pushes the change into `UsersProvider` and `UserContext`.
 
@@ -305,15 +309,18 @@ Three notification types: `ticket-assigned`, `new-ticket`, `daily-summary`.
 7. **Derived SLA/overdue/metrics** — never persisted duplicates; single source of truth.
 8. **Lazy-loaded analytics** — Recharts only fetched for managers on `/analytics`.
 9. **Role permissions as pure functions** — testable, not scattered through JSX; still not real authorization.
-10. **localStorage persistence** — user session, tickets, notifications survive refresh; clear tradeoff: localStorage is not secure storage nor a real backend, and there's no cross-tab invalidation.
+10. **localStorage persistence** — user session, tickets, customers, notifications survive refresh; clear tradeoff: localStorage is not secure storage nor a real backend, and there's no cross-tab invalidation.
+11. **MUI for form fields, cards, and the table** — production-grade widgets (focus states, a11y wiring, error styling) instead of hand-rolling every control. Costs: a larger main bundle (~575 kB, above Vite's 500 kB warning) and version-specific quirks in v9 (`slotProps.htmlInput`, `Stack` alignment props must live in `sx`). Labels are plain block `<label>` elements above the fields so spacing/overlap stays predictable.
+12. **Notification → Add Ticket deep-link with legacy recovery** — new-request notifications stamp `customerId`, and the notifications page resolves the customer (stored → linked ticket → customer name parsed from the message) so even pre-existing notifications prefill the Add Ticket form. Cost: the name-parse fallback is inherently best-effort.
+13. **Resizable table columns** — the desktop tickets table uses fixed layout + horizontal scroll with pointer-drag column resizing. Cost: niche functionality, extra handle code.
 
 ---
 
 ## 17. Build / type / lint story
 
-- `npm run build` runs `tsc -b` (strict TypeScript across project references) then `vite build`. It currently succeeds (that's the verification bar for the auth changes).
+- `npm run build` runs `tsc -b` (strict TypeScript across project references) then `vite build`. It currently succeeds (that's the verification bar for the auth/customer/MUI changes).
 - `npm run lint` → ESLint (flat config era), passes.
-- Prettier is enforced (`npm run format:check`) — note a handful of pre-existing files (e.g. `LoginInput.tsx`, `BackButton.tsx`) still fail it; the auth changes did not touch those.
+- Prettier is enforced (`npm run format:check`), but **style drift remains** — as of the MUI + customer-store work, 20+ files (notably the MUI-based form components and the newest feature files) still fail it; `npm run format` normalizes them.
 - `vite.config.ts` uses the **React Compiler preset** (`@babel/plugin-react-compiler`) — meaning the app relies on the compiler doing memoization automatically rather than hand-tuning `React.memo`.
 
 ---
@@ -331,3 +338,5 @@ Three notification types: `ticket-assigned`, `new-ticket`, `daily-summary`.
 | "How is state owned?"                 | `App.tsx` nesting + each provider                                  |
 | "How is the status machine enforced?" | `TicketQuickActions.tsx` (ALLOWED_TRANSITIONS)                     |
 | "How do notifications fire?"          | `utils/notifications.ts` + provider + event sites                  |
+| "Where's the customer store?"         | `features/customers/CustomersProvider.tsx` + `hooks/useCustomers.ts` |
+| "Why do notifications deep-link to Add Ticket?" | `NotificationsPage.tsx` (`targetHrefFor`) + `NewTicketPage.tsx` (`?customer=`) |

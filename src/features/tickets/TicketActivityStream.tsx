@@ -3,7 +3,8 @@ import { Button } from "../../components/ui/Button";
 import { TextArea } from "../../components/ui/TextArea";
 import { useUser } from "../../hooks/useUser";
 import { useTickets } from "../../hooks/useTickets";
-import { MOCK_CUSTOMERS, MOCK_USERS } from "../../mocks/generator";
+import { useCustomers } from "../../hooks/useCustomers";
+import { MOCK_USERS } from "../../mocks/generator";
 
 interface ActivityItem {
   id: string;
@@ -18,6 +19,7 @@ export const TicketActivityStream: React.FC<{ ticketId: string }> = ({
 }) => {
   const { currentUser } = useUser();
   const { comments, activityEvents, addComment } = useTickets();
+  const { customers } = useCustomers();
 
   const [text, setText] = useState("");
   const [isInternal, setIsInternal] = useState(false);
@@ -43,7 +45,7 @@ export const TicketActivityStream: React.FC<{ ticketId: string }> = ({
         id: e.id,
         author:
           MOCK_USERS.find((u) => u.id === e.actorId)?.name ||
-          MOCK_CUSTOMERS.find((c) => c.id === e.actorId)?.name ||
+          customers.find((c) => c.id === e.actorId)?.name ||
           "System",
         text,
         timestamp: e.createdAt,

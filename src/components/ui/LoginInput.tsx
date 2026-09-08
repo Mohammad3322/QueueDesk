@@ -1,8 +1,13 @@
-import React, { type InputHTMLAttributes } from "react";
+import React from "react";
+import TextField from "@mui/material/TextField";
+import type { TextFieldProps } from "@mui/material/TextField";
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface InputProps
+  extends Omit<TextFieldProps, "label" | "error" | "inputProps"> {
   label?: string;
   error?: string;
+  maxLength?: number;
+  minLength?: number;
 }
 
 export const LoginInput: React.FC<InputProps> = ({
@@ -10,60 +15,36 @@ export const LoginInput: React.FC<InputProps> = ({
   error,
   className = "",
   id,
+  maxLength,
+  minLength,
   ...props
 }) => {
-  const inputId = id || props.name;
+  const fieldId = id || props.name;
 
   return (
     <div className="w-full">
       {label && (
         <label
-          htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          htmlFor={fieldId}
+          className="block text-sm font-medium text-gray-700 mb-1.5"
         >
           {label}
         </label>
       )}
-      <input
-        id={inputId}
-        className={`w-full px-3 py-2 border rounded-lg shadow-xs text-sm focus:outline-none focus:ring-2 transition-colors ${
-          error
-            ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-            : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-        } ${className}`}
+      <TextField
+        id={fieldId}
+        error={!!error}
+        helperText={error}
+        variant="outlined"
+        size="small"
+        fullWidth
+        className={className}
+        slotProps={{
+          htmlInput: { maxLength, minLength },
+          formHelperText: { sx: { mx: 0, mt: "4px" } },
+        }}
         {...props}
-      />{" "}
-      {/* <Autocomplet
-        sx={{ width: 300 }}
-        open={open}
-        onOpen={handleOpen}
-        onClose={handleClose}
-        isOptionEqualToValue={(option, value) => option.title === value.title}
-        getOptionLabel={(option) => option.title}
-        options={options}
-        loading={loading}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Asynchronous"
-            slotProps={{
-              ...params.slotProps,
-              input: {
-                ...params.slotProps.input,
-                endAdornment: (
-                  <React.Fragment>
-                    {loading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.slotProps.input.endAdornment}
-                  </React.Fragment>
-                ),
-              },
-            }}
-          />
-        )}
-      /> */}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      />
     </div>
   );
 };

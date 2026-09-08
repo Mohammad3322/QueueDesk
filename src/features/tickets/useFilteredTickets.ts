@@ -1,14 +1,15 @@
 import { useSearchParams } from "react-router-dom";
 import type { Ticket } from "../../types";
 import { applyTicketPipeline } from "../../utils/ticketPipeline";
-import { MOCK_CUSTOMERS } from "../../mocks/generator";
-
-const customerNameById = (id: string): string => {
-  return MOCK_CUSTOMERS.find((c) => c.id === id)?.name ?? "";
-};
+import { useCustomers } from "../../hooks/useCustomers";
 
 export const useFilteredTickets = (tickets: Ticket[]) => {
   const [searchParams] = useSearchParams();
+  const { customers } = useCustomers();
+
+  const customerNameById = (id: string): string => {
+    return customers.find((c) => c.id === id)?.name ?? "";
+  };
 
   return applyTicketPipeline(
     tickets,

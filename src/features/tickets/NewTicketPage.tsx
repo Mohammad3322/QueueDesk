@@ -1,21 +1,21 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTickets } from "../../hooks/useTickets";
 import { useUser } from "../../hooks/useUser";
 import { useUsers } from "../../hooks/useUsers";
 import { useNotifications } from "../../hooks/useNotifications";
+import { useCustomers } from "../../hooks/useCustomers";
 import { canManageUsers } from "../../utils/permissions";
 import {
   buildNewTicketNotification,
   buildTicketAssignedNotification,
 } from "../../utils/notifications";
-import { MOCK_CUSTOMERS } from "../../mocks/generator";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { TextArea } from "../../components/ui/TextArea";
 import { Select } from "../../components/ui/Select";
 import { Button } from "../../components/ui/Button";
-import type { TicketPriority } from "../../types";
+import type { CustomerPlan, TicketPriority } from "../../types";
 import {
   DEFAULT_TAG,
   DEFAULT_TICKET_CATEGORY,
@@ -32,16 +32,42 @@ interface FormErrors {
   subject?: string;
   description?: string;
   category?: string;
+  newCustomerName?: string;
+  newCustomerEmail?: string;
 }
+
+const NEW_CUSTOMER_OPTION = "__new__";
+const CUSTOMER_PLANS: CustomerPlan[] = [
+  "free",
+  "starter",
+  "business",
+  "enterprise",
+];
 
 export const NewTicketPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { tickets, createTicket } = useTickets();
   const { currentUser } = useUser();
   const { users } = useUsers();
+  const { customers, createCustomer } = useCustomers();
   const { addNotification } = useNotifications();
 
-  const [customerId, setCustomerId] = useState("");
+  // Pre-select a customer when arriving from a "new customer request"
+  // notification (e.g. /tickets/new?customer=customer-42).
+  const prefillCustomerId = customers.some(
+    (c) => c.id === searchParams.get("customer"),
+  )
+    ? (searchParams.get("customer") as string)
+    : "";
+
+  const [customerId, setCustomerId] = useState(prefillCustomerId);
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerEmail, setNewCustomerEmail] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [newCustomerCompany, setNewCustomerCompany] = useState("");
+  const [newCustomerPlan, setNewCustomerPlan] =
+    useState<CustomerPlan>("starter");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(DEFAULT_TICKET_CATEGORY);
@@ -52,11 +78,31 @@ export const NewTicketPage: React.FC = () => {
   const [tags, setTags] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
+  const isNewCustomer = customerId === NEW_CUSTOMER_OPTION;
+
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
 
     if (!customerId) {
       newErrors.customerId = "Please select a customer";
+    }
+    if (isNewCustomer) {
+      if (!newCustomerName.trim()) {
+        newErrors.newCustomerName = "Customer name is required";
+      }
+      if (!newCustomerEmail.trim()) {
+        newErrors.newCustomerEmail = "Customer email is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newCustomerEmail.trim())) {
+        newErrors.newCustomerEmail = "Enter a valid email address";
+      } else if (
+        customers.some(
+          (c) =>
+            c.email.toLowerCase() === newCustomerEmail.trim().toLowerCase(),
+        )
+      ) {
+        newErrors.newCustomerEmail =
+          "A customer with this email already exists. Select them from the list above.";
+      }
     }
     if (!subject.trim()) {
       newErrors.subject = "Subject is required";
@@ -86,11 +132,22 @@ export const NewTicketPage: React.FC = () => {
     const newId = `TICK-${1000 + tickets.length + 1}`;
     const dueAt = new Date(now.getTime() + 24 * 3600000).toISOString();
 
+    let resolvedCustomerId = customerId;
+    if (isNewCustomer) {
+      resolvedCustomerId = createCustomer({
+        name: newCustomerName,
+        email: newCustomerEmail,
+        phone: newCustomerPhone,
+        company: newCustomerCompany,
+        plan: newCustomerPlan,
+      }).id;
+    }
+
     const newTicket = {
       id: newId,
       subject: subject.trim(),
       description: description.trim(),
-      customerId,
+      customerId: resolvedCustomerId,
       assigneeId: assigneeId || undefined,
       status: "open" as const,
       priority,
@@ -108,7 +165,7 @@ export const NewTicketPage: React.FC = () => {
 
     createTicket(newTicket);
 
-    const customer = MOCK_CUSTOMERS.find((c) => c.id === customerId);
+    const customer = customers.find((c) => c.id === resolvedCustomerId);
     const assignee = assigneeId
       ? users.find((u) => u.id === assigneeId)
       : undefined;
@@ -151,25 +208,95 @@ export const NewTicketPage: React.FC = () => {
         <Card>
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <Select
-                id="customer"
-                label={
-                  <>
-                    Customer <span className="text-red-500">*</span>
-                  </>
-                }
-                value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-                error={errors.customerId}
-              >
-                <option value="">Select a customer...</option>
-                {MOCK_CUSTOMERS.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.name} ({customer.plan})
-                  </option>
-                ))}
-              </Select>
+              <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <Select
+                    id="customer"
+                    label={
+                      <>
+                        Customer <span className="text-red-500">*</span>
+                      </>
+                    }
+                    value={customerId}
+                    onChange={(e) => setCustomerId(e.target.value)}
+                    error={errors.customerId}
+                  >
+                    <option value="">Select a customer...</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name} ({customer.plan})
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 sm:mt-6"
+                  onClick={() =>
+                    setCustomerId(
+                      isNewCustomer ? "" : NEW_CUSTOMER_OPTION,
+                    )
+                  }
+                >
+                  {isNewCustomer ? "Cancel New Customer" : "Add New Customer"}
+                </Button>
+              </div>
             </div>
+
+            {isNewCustomer && (
+              <div className="space-y-4 p-4 border border-dashed border-blue-300 bg-blue-50/40 rounded-xl">
+                <p className="text-sm font-semibold text-blue-800">
+                  New Customer Details
+                </p>
+                <Input
+                  id="new-customer-name"
+                  label="Customer Name *"
+                  placeholder="e.g. Acme Corp"
+                  value={newCustomerName}
+                  onChange={(e) => setNewCustomerName(e.target.value)}
+                  error={errors.newCustomerName}
+                />
+                <Input
+                  id="new-customer-email"
+                  label="Customer Email *"
+                  placeholder="e.g. contact@acme.com"
+                  value={newCustomerEmail}
+                  onChange={(e) => setNewCustomerEmail(e.target.value)}
+                  error={errors.newCustomerEmail}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    id="new-customer-company"
+                    label="Company (Optional)"
+                    placeholder="e.g. Acme Corporation"
+                    value={newCustomerCompany}
+                    onChange={(e) => setNewCustomerCompany(e.target.value)}
+                  />
+                  <Input
+                    id="new-customer-phone"
+                    label="Phone (Optional)"
+                    placeholder="e.g. +1 555 000 1234"
+                    value={newCustomerPhone}
+                    onChange={(e) => setNewCustomerPhone(e.target.value)}
+                  />
+                </div>
+                <Select
+                  id="new-customer-plan"
+                  label="Plan"
+                  value={newCustomerPlan}
+                  onChange={(e) =>
+                    setNewCustomerPlan(e.target.value as CustomerPlan)
+                  }
+                >
+                  {CUSTOMER_PLANS.map((plan) => (
+                    <option key={plan} value={plan}>
+                      {plan[0].toUpperCase() + plan.slice(1)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
 
             <Input
               label="Subject"

@@ -1,7 +1,8 @@
 import React from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTickets } from "../../hooks/useTickets";
-import { MOCK_CUSTOMERS, MOCK_AGENTS } from "../../mocks/generator";
+import { MOCK_AGENTS } from "../../mocks/generator";
+import { useCustomers } from "../../hooks/useCustomers";
 import { useFilteredTickets } from "./useFilteredTickets";
 import { TicketFilters } from "./TicketFilters";
 import { Badge } from "../../components/ui/Badge";
@@ -17,9 +18,114 @@ import { useUser } from "../../hooks/useUser";
 import { canDeleteTickets } from "../../utils/permissions";
 import { TicketCard } from "../../components/ui/MuiMCard";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+
+type TicketTableCol =
+  | "id"
+  | "subject"
+  | "customer"
+  | "priority"
+  | "status"
+  | "assignee"
+  | "sla"
+  | "actions";
+
+const DEFAULT_COL_WIDTHS: Record<TicketTableCol, number> = {
+  id: 130,
+  subject: 320,
+  customer: 220,
+  priority: 110,
+  status: 140,
+  assignee: 160,
+  sla: 110,
+  actions: 90,
+};
+
+const MIN_COL_WIDTH = 80;
+
+const MONO_FONT =
+  "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+function useColumnResize(defaultWidths: Record<TicketTableCol, number>) {
+  const [widths, setWidths] = React.useState(defaultWidths);
+
+  const startResize = (
+    col: TicketTableCol,
+    startX: number,
+    startWidth: number,
+  ) => {
+    const onMove = (e: PointerEvent) => {
+      setWidths((prev) => ({
+        ...prev,
+        [col]: Math.max(MIN_COL_WIDTH, startWidth + e.clientX - startX),
+      }));
+    };
+    const onUp = () => {
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  return { widths, startResize };
+}
+
+function ResizableTh({
+  col,
+  width,
+  onResize,
+  children,
+}: {
+  col: TicketTableCol;
+  width: number;
+  onResize: (col: TicketTableCol, startX: number, width: number) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <TableCell
+      style={{ width }}
+      sx={{
+        position: "relative",
+        fontWeight: 700,
+        fontSize: "0.72rem",
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+        color: "text.secondary",
+        whiteSpace: "nowrap",
+        borderBottom: 1,
+        borderColor: "divider",
+      }}
+    >
+      {children}
+      <span
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={`Resize ${col} column`}
+        title="Drag to resize"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onResize(col, e.clientX, width);
+        }}
+        className="absolute top-1 right-0 -bottom-1 z-10 w-1.5 cursor-col-resize touch-none bg-transparent hover:bg-blue-400/60 hover:shadow-[0_0_4px_rgba(59,130,246,0.6)] active:bg-blue-500/80"
+      />
+    </TableCell>
+  );
+}
 
 export const TicketsPage: React.FC = () => {
   const { currentUser } = useUser();
+  const { customers } = useCustomers();
   const {
     tickets: allTickets,
     loadState,
@@ -34,11 +140,11 @@ export const TicketsPage: React.FC = () => {
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
   const canDelete = canDeleteTickets(currentUser);
+  const { widths, startResize } = useColumnResize(DEFAULT_COL_WIDTHS);
 
   const getCustomerName = (customerId: string) => {
     return (
-      MOCK_CUSTOMERS.find((c) => c.id === customerId)?.name ||
-      "Unknown Customer"
+      customers.find((c) => c.id === customerId)?.name || "Unknown Customer"
     );
   };
 
@@ -144,59 +250,173 @@ export const TicketsPage: React.FC = () => {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 w-full border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">ID</th>
-                  <th className="py-3 px-4">Subject</th>
-                  <th className="py-3 px-4">Customer</th>
-                  <th className="py-3 px-4">Priority</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Assignee</th>
-                  <th className="py-3 px-4">SLA</th>
-                  {canDelete && <th className="py-3 px-4">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 text-sm">
-                {tickets.map((ticket) => (
-                  <tr
-                    key={ticket.id}
-                    className="hover:bg-gray-50 transition-colors"
+          <TableContainer
+            className="hidden md:block"
+            sx={{
+              bgcolor: "background.paper",
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 3,
+              boxShadow:
+                "0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.06)",
+              overflowX: "auto",
+            }}
+          >
+            <Table
+              size="small"
+              sx={{
+                tableLayout: "fixed",
+                minWidth: "100%",
+                borderCollapse: "collapse",
+                "& .MuiTableCell-root": {
+                  borderBottom: "1px solid",
+                  borderColor: "grey.100",
+                },
+                "& .MuiTableHead-root .MuiTableCell-root": {
+                  paddingY: "12px",
+                },
+                "& .MuiTableBody-root .MuiTableCell-root": {
+                  paddingY: "11px",
+                  verticalAlign: "middle",
+                },
+                "& .MuiTableRow-root:last-child .MuiTableCell-root": {
+                  borderBottom: 0,
+                },
+              }}
+            >
+              <TableHead>
+                <TableRow sx={{ bgcolor: "grey.50" }}>
+                  <ResizableTh
+                    col="id"
+                    width={widths.id}
+                    onResize={startResize}
                   >
-                    <td className="py-3 px-4 font-mono font-medium text-blue-600">
+                    ID
+                  </ResizableTh>
+                  <ResizableTh
+                    col="subject"
+                    width={widths.subject}
+                    onResize={startResize}
+                  >
+                    Subject
+                  </ResizableTh>
+                  <ResizableTh
+                    col="customer"
+                    width={widths.customer}
+                    onResize={startResize}
+                  >
+                    Customer
+                  </ResizableTh>
+                  <ResizableTh
+                    col="priority"
+                    width={widths.priority}
+                    onResize={startResize}
+                  >
+                    Priority
+                  </ResizableTh>
+                  <ResizableTh
+                    col="status"
+                    width={widths.status}
+                    onResize={startResize}
+                  >
+                    Status
+                  </ResizableTh>
+                  <ResizableTh
+                    col="assignee"
+                    width={widths.assignee}
+                    onResize={startResize}
+                  >
+                    Assignee
+                  </ResizableTh>
+                  <ResizableTh
+                    col="sla"
+                    width={widths.sla}
+                    onResize={startResize}
+                  >
+                    SLA
+                  </ResizableTh>
+                  {canDelete && (
+                    <ResizableTh
+                      col="actions"
+                      width={widths.actions}
+                      onResize={startResize}
+                    >
+                      Actions
+                    </ResizableTh>
+                  )}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {tickets.map((ticket) => (
+                  <TableRow
+                    key={ticket.id}
+                    hover
+                  >
+                    <TableCell sx={{ fontFamily: MONO_FONT, fontWeight: 600, color: "primary.main", whiteSpace: "nowrap" }}>
                       <Link to={`/tickets/${ticket.id}`}>{ticket.id}</Link>
-                    </td>
-                    <td className="py-3 px-4 font-medium text-gray-900 max-w-xs truncate">
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: 500,
+                        color: "text.primary",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: 0,
+                      }}
+                    >
                       <Link
                         to={`/tickets/${ticket.id}`}
                         className="hover:underline"
                       >
                         {ticket.subject}
                       </Link>
-                    </td>
-                    <td className="py-3 px-4">
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: 0,
+                      }}
+                    >
                       <Link
                         to={`/customers/${ticket.customerId}`}
                         className="text-gray-600 hover:text-blue-600 hover:underline"
                       >
                         {getCustomerName(ticket.customerId)}
                       </Link>
-                    </td>
-                    <td className="py-3 px-4">
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>
                       <Badge variant={getPriorityVariant(ticket.priority)}>
                         {ticket.priority}
                       </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-gray-700 capitalize">
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "text.primary",
+                        textTransform: "capitalize",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {ticket.status.replace("-", " ")}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "text.secondary",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: 0,
+                      }}
+                    >
                       {getAssigneeName(ticket.assigneeId)}
-                    </td>
-                    <td className="py-3 px-4">{getSlaBadge(ticket)}</td>
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>
+                      {getSlaBadge(ticket)}
+                    </TableCell>
                     {canDelete && (
-                      <td className="py-3 px-4">
+                      <TableCell sx={{ whiteSpace: "nowrap" }}>
                         <Button
                           variant="dangerOutline"
                           size="sm"
@@ -209,13 +429,13 @@ export const TicketsPage: React.FC = () => {
                         >
                           <DeleteOutlinedIcon />
                         </Button>
-                      </td>
+                      </TableCell>
                     )}
-                  </tr>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </TableContainer>
 
           {/* Mobile cards */}
           <div className="grid grid-cols-1 gap-3 md:hidden">

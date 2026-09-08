@@ -11,7 +11,6 @@ const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
-/** "2026-01-05" in the local timezone — useful for "per day" grouping. */
 export function getLocalDateKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -44,9 +43,7 @@ const notificationId = (
   recipientId: string,
 ): string => `ntf-${type}-${ticketId}-${recipientId}-${Date.now()}`;
 
-/**
- * Notification sent to an agent the moment a ticket is (re)assigned to them.
- */
+
 export function buildTicketAssignedNotification(params: {
   id?: string;
   ticket: Ticket;
@@ -90,6 +87,7 @@ export function buildNewTicketNotification(params: {
     title: "New customer request",
     message: `${customerName} submitted a new request: ${ticket.subject} (${ticket.id}).`,
     ticketId: ticket.id,
+    customerId: ticket.customerId,
     createdAt: params.createdAt ?? new Date().toISOString(),
     read: false,
   };
@@ -139,9 +137,7 @@ export function computeDailySummaryStats(
   };
 }
 
-/**
- * Notification sent to a manager once a day with the headline support KPIs.
- */
+
 export function buildDailySummaryNotification(params: {
   id?: string;
   manager: User;
@@ -177,7 +173,6 @@ export function buildDailySummaryNotification(params: {
   };
 }
 
-/** Compact human-readable duration ("2h 5m", "3d 2h", …). */
 export function formatDuration(ms: number): string {
   const hours = Math.floor(ms / HOUR);
   const minutes = Math.floor((ms % HOUR) / MINUTE);

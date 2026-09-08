@@ -1,9 +1,11 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTickets } from "../../hooks/useTickets";
-import { MOCK_CUSTOMERS } from "../../mocks/generator";
+import { useCustomers } from "../../hooks/useCustomers";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
+import BackButton from "../../components/ui/BackButton";
+import { GoButton } from "../../components/ui/GoButton";
 
 const PLAN_VARIANTS: Record<
   string,
@@ -18,8 +20,9 @@ const PLAN_VARIANTS: Record<
 export const CustomerDetailPage: React.FC = () => {
   const { customerId } = useParams<{ customerId: string }>();
   const { tickets } = useTickets();
+  const { customers } = useCustomers();
 
-  const customer = MOCK_CUSTOMERS.find((c) => c.id === customerId);
+  const customer = customers.find((c) => c.id === customerId);
   const customerTickets = customer
     ? tickets.filter((t) => t.customerId === customer.id)
     : [];
@@ -31,11 +34,8 @@ export const CustomerDetailPage: React.FC = () => {
         <p className="text-gray-500 text-sm">
           The requested customer does not exist in this dataset.
         </p>
-        <Link
-          to="/tickets"
-          className="inline-block text-sm font-medium text-blue-600 hover:underline"
-        >
-          Back to Tickets
+        <Link to="/tickets">
+          <BackButton />
         </Link>
       </div>
     );
@@ -55,7 +55,7 @@ export const CustomerDetailPage: React.FC = () => {
           to="/tickets"
           className="text-xs font-semibold text-gray-500 hover:text-gray-900"
         >
-          ← Back
+          <BackButton />
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
         <Badge variant={PLAN_VARIANTS[customer.plan]}>{customer.plan}</Badge>
@@ -131,9 +131,9 @@ export const CustomerDetailPage: React.FC = () => {
                   </div>
                   <Link
                     to={`/tickets/${ticket.id}`}
-                    className="text-xs font-medium text-blue-600 hover:underline shrink-0"
+                    className="shrink-0"
                   >
-                    View
+                    <GoButton child="Go" />
                   </Link>
                 </li>
               ))}

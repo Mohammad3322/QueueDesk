@@ -1,7 +1,8 @@
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTickets } from "../../hooks/useTickets";
-import { MOCK_CUSTOMERS, MOCK_USERS } from "../../mocks/generator";
+import { useCustomers } from "../../hooks/useCustomers";
+import { MOCK_USERS } from "../../mocks/generator";
 import { SLAIndicator } from "./SLAIndicator";
 import { TicketQuickActions } from "./TicketQuickActions";
 import { TicketActivityStream } from "./TicketActivityStream";
@@ -9,15 +10,17 @@ import { Card } from "../../components/ui/Card";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Spinner } from "../../components/ui/Spinner";
 import BackButton from "../../components/ui/BackButton";
+import { GoButton } from "../../components/ui/GoButton";
 
 export const TicketDetailPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
   const { getTicketById, loadState } = useTickets();
+  const { customers } = useCustomers();
 
   const ticket = ticketId ? getTicketById(ticketId) : undefined;
   const customer = ticket
-    ? MOCK_CUSTOMERS.find((c) => c.id === ticket.customerId)
+    ? customers.find((c) => c.id === ticket.customerId)
     : undefined;
   const assignee = ticket?.assigneeId
     ? MOCK_USERS.find((u) => u.id === ticket.assigneeId)
@@ -37,7 +40,7 @@ export const TicketDetailPage: React.FC = () => {
       <EmptyState
         title={`Ticket ${ticketId} Not Found`}
         description="The requested ticket does not exist or has been removed."
-        actionLabel="View all tickets"
+        actionLabel="Go to tickets"
         onAction={() => navigate("/tickets")}
       />
     );
@@ -58,9 +61,9 @@ export const TicketDetailPage: React.FC = () => {
         {customer && (
           <Link
             to={`/customers/${customer.id}`}
-            className="text-xs font-medium text-blue-600 hover:underline"
+            className="text-xs font-medium text-blue-600"
           >
-            View customer profile →
+            <GoButton child="Go" />
           </Link>
         )}
       </div>

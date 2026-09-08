@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -19,6 +19,7 @@ import { canViewAnalytics } from "../../utils/permissions";
 import { computeMetrics, formatDuration } from "../../utils/metrics";
 import { Card } from "../../components/ui/Card";
 import { Alert } from "../../components/ui/Alert";
+import { GoButton } from "../../components/ui/GoButton";
 import { MOCK_USERS } from "../../mocks/generator";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -39,7 +40,6 @@ const PRIORITY_COLORS: Record<string, string> = {
 export const AnalyticsPage: React.FC = () => {
   const { tickets } = useTickets();
   const { currentUser } = useUser();
-  const navigate = useNavigate();
 
   if (!canViewAnalytics(currentUser)) {
     return (
@@ -186,12 +186,9 @@ export const AnalyticsPage: React.FC = () => {
             </ResponsiveContainer>
           </div>
           <div className="flex justify-end mt-2">
-            <button
-              onClick={() => navigate("/tickets")}
-              className="text-xs font-medium text-blue-600 hover:underline"
-            >
-              View all tickets →
-            </button>
+            <Link to="/tickets">
+              <GoButton child="Go" />
+            </Link>
           </div>
         </Card>
       </div>

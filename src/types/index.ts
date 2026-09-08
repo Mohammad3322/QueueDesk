@@ -92,6 +92,7 @@ export interface AppNotification {
   title: string;
   message: string;
   ticketId?: string;
+  customerId?: string;
   createdAt: string;
   read: boolean;
 }

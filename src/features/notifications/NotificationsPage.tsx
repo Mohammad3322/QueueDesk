@@ -2,13 +2,22 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useNotifications } from "../../hooks/useNotifications";
 import { useUser } from "../../hooks/useUser";
+import { useTickets } from "../../hooks/useTickets";
+import { useCustomers } from "../../hooks/useCustomers";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { NOTIFICATION_TYPE_LABELS } from "../../constants";
+import {
+  APP_ROUTES,
+  NOTIFICATION_TYPE_LABELS,
+} from "../../constants";
 import { formatRelativeTime } from "../../utils/notifications";
-import type { AppNotification, NotificationType } from "../../types";
+import type {
+  AppNotification,
+  NotificationType,
+} from "../../types";
 import BackButton from "../../components/ui/BackButton";
+import { GoButton } from "../../components/ui/GoButton";
 
 const NOTIFICATION_BADGE_VARIANTS: Record<
   NotificationType,
@@ -21,16 +30,46 @@ const NOTIFICATION_BADGE_VARIANTS: Record<
 
 export const NotificationsPage: React.FC = () => {
   const { currentUser } = useUser();
-  const {
-    notifications,
-    markAsRead,
-    markAllAsRead,
-    notificationsFor,
-    unreadCountFor,
-  } = useNotifications();
+  const { notifications, markAsRead, markAllAsRead, notificationsFor, unreadCountFor } =
+    useNotifications();
+  const { getTicketById } = useTickets();
+  const { customers, getCustomerById } = useCustomers();
 
   const myNotifications = notificationsFor(currentUser.id);
   const unreadCount = unreadCountFor(currentUser.id);
+
+  // Resolve the requesting customer for a "new customer request" notification.
+  // Prefer the stored customerId; fall back to the ticket, then to the customer
+  // name embedded in the message (old notifications predate customerId and may
+  // reference tickets that were replaced by the mock dataset on reload).
+  const customerForNotification = (
+    notification: AppNotification,
+  ) => {
+    const byId =
+      notification.customerId ??
+      (notification.ticketId
+        ? getTicketById(notification.ticketId)?.customerId
+        : undefined);
+    const found = byId ? getCustomerById(byId) : undefined;
+    if (found) return found;
+
+    const name = notification.message.split(" submitted a new request: ")[0];
+    return name ? customers.find((c) => c.name === name) : undefined;
+  };
+
+  // A "new customer request" notification opens the Add Ticket page with the
+  // requesting customer pre-selected; other ticket notifications open the ticket.
+  const targetHrefFor = (notification: AppNotification): string | undefined => {
+    if (notification.type === "new-ticket") {
+      const customer = customerForNotification(notification);
+      return customer
+        ? `${APP_ROUTES.newTicket}?customer=${encodeURIComponent(customer.id)}`
+        : APP_ROUTES.newTicket;
+    }
+    return notification.ticketId
+      ? `/tickets/${notification.ticketId}`
+      : undefined;
+  };
 
   return (
     <div className="flex flex-col gap-10">
@@ -65,6 +104,7 @@ export const NotificationsPage: React.FC = () => {
               <NotificationItem
                 key={notification.id}
                 notification={notification}
+                href={targetHrefFor(notification)}
                 onOpen={() => markAsRead(notification.id)}
               />
             ))}
@@ -84,11 +124,13 @@ export const NotificationsPage: React.FC = () => {
 
 interface NotificationItemProps {
   notification: AppNotification;
+  href?: string;
   onOpen: () => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
+  href,
   onOpen,
 }) => {
   const inner = (
@@ -117,17 +159,17 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         </div>
         <p className="text-sm text-gray-600">{notification.message}</p>
       </div>
-      {notification.ticketId && (
-        <span className="text-xs font-medium text-blue-600 shrink-0">
-          View ticket
-        </span>
+      {href && (
+        <div className="shrink-0">
+          <GoButton child="Go" />
+        </div>
       )}
     </div>
   );
 
-  const content = notification.ticketId ? (
+  const content = href ? (
     <Link
-      to={`/tickets/${notification.ticketId}`}
+      to={href}
       onClick={onOpen}
       className="flex items-start gap-3 p-4 rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors"
     >
