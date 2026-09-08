@@ -4,17 +4,55 @@ import { MOCK_COMMENTS, MOCK_ACTIVITY_EVENTS } from "../../mocks/generator";
 import { ticketService } from "../../services/api/ticketService";
 import { TicketContext } from "./context";
 
+const TICKETS_KEY = "queuedesk_tickets";
+const COMMENTS_KEY = "queuedesk_comments";
+const ACTIVITY_KEY = "queuedesk_activity";
+
+function loadJson<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveJson(key: string, data: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    /* quota exceeded */
+  }
+}
+
 export const TicketProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
-  const [activityEvents, setActivityEvents] =
-    useState<ActivityEvent[]>(MOCK_ACTIVITY_EVENTS);
+  const [tickets, setTickets] = useState<Ticket[]>(() => {
+    return loadJson<Ticket[]>(TICKETS_KEY) ?? [];
+  });
+  const [comments, setComments] = useState<Comment[]>(() => {
+    return loadJson<Comment[]>(COMMENTS_KEY) ?? MOCK_COMMENTS;
+  });
+  const [activityEvents, setActivityEvents] = useState<ActivityEvent[]>(() => {
+    return loadJson<ActivityEvent[]>(ACTIVITY_KEY) ?? MOCK_ACTIVITY_EVENTS;
+  });
   const [loadState, setLoadState] = useState<"loading" | "success" | "error">(
-    "loading",
+    loadJson<Ticket[]>(TICKETS_KEY) ? "success" : "loading",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    saveJson(TICKETS_KEY, tickets);
+  }, [tickets]);
+
+  useEffect(() => {
+    saveJson(COMMENTS_KEY, comments);
+  }, [comments]);
+
+  useEffect(() => {
+    saveJson(ACTIVITY_KEY, activityEvents);
+  }, [activityEvents]);
 
   const refresh = useCallback(async () => {
     setLoadState("loading");

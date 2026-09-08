@@ -1,13 +1,15 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/useUser";
 import { useUsers } from "../hooks/useUsers";
 import { useNotifications } from "../hooks/useNotifications";
 import { APP_ROUTES } from "../constants";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 export const Header: React.FC = () => {
-  const { currentUser, setCurrentUser } = useUser();
+  const { currentUser, setCurrentUser, logout } = useUser();
+  const navigate = useNavigate();
   const { users } = useUsers();
   const { unreadCountFor } = useNotifications();
   const unread = unreadCountFor(currentUser.id);
@@ -105,6 +107,20 @@ export const Header: React.FC = () => {
               className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200"
             />
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              navigate(APP_ROUTES.login);
+            }}
+            className="flex items-center gap-1.5 text-xs font-medium text-white bg-white/15 hover:bg-white/25 rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+            title="Sign out"
+          >
+            <LogoutIcon sx={{ fontSize: 16 }} />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </div>
     </header>

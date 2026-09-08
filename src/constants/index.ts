@@ -8,6 +8,7 @@ import type {
 // Application routes
 // Single source for route paths so layouts and links stay in sync.
 export const APP_ROUTES = {
+  login: "/login",
   dashboard: "/",
   tickets: "/tickets",
   newTicket: "/tickets/new",
@@ -37,8 +38,6 @@ export const RESOLVED_TICKET_STATUSES: readonly TicketStatus[] = [
   "resolved",
   "closed",
 ];
-
-
 
 export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
   open: "Open",
