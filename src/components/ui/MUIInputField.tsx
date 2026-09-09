@@ -49,7 +49,7 @@ export default function Asynchronous({
   };
 
   return (
-    <>
+    <div className=" my-20">
       <Autocomplete
         id={id}
         sx={{ width: 300 }}
@@ -82,7 +82,7 @@ export default function Asynchronous({
         )}
       />
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </>
+    </div>
   );
 }
 

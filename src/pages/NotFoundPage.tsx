@@ -16,7 +16,7 @@ export const NotFoundPage: React.FC = () => {
           <BackButton />
         </Link>
         <Link to="/tickets">
-          <GoButton child="Go" />
+          <GoButton child="View" />
         </Link>
       </div>
     </div>

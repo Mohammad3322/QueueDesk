@@ -187,7 +187,7 @@ export const AnalyticsPage: React.FC = () => {
           </div>
           <div className="flex justify-end mt-2">
             <Link to="/tickets">
-              <GoButton child="Go" />
+              <GoButton child="View" />
             </Link>
           </div>
         </Card>

@@ -63,7 +63,7 @@ export const TicketDetailPage: React.FC = () => {
             to={`/customers/${customer.id}`}
             className="text-xs font-medium text-blue-600"
           >
-            <GoButton child="Go" />
+            <GoButton child="View" />
           </Link>
         )}
       </div>

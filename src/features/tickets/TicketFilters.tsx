@@ -23,6 +23,7 @@ export const TicketFilters: React.FC = () => {
     } else {
       newParams.delete(key);
     }
+
     // Reset to the first page whenever filters change to avoid a blank page.
     newParams.set("page", "1");
     setSearchParams(newParams);

@@ -99,24 +99,6 @@ export const AppLayout: React.FC = () => {
           </NavLink>
         ))}
       </nav>
-      {/* <div className="md:hidden fixed bottom-0 left-0 right-0">
-        <BottomNavigation
-          // sx={{ width: 400 }}
-          style={{ width: "100%" }}
-          value={value}
-          onChange={handleChange}
-        >
-          {mobileNav.map((item) => (
-            <BottomNavigationAction
-              sx={{ width: 5 }}
-              style={{ width: "80%" }}
-              label={item.label}
-              value="dashboard"
-              icon={item.icon}
-            />
-          ))}
-        </BottomNavigation>
-      </div> */}
     </div>
   );
 };

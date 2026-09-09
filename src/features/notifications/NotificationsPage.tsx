@@ -7,15 +7,9 @@ import { useCustomers } from "../../hooks/useCustomers";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
-import {
-  APP_ROUTES,
-  NOTIFICATION_TYPE_LABELS,
-} from "../../constants";
+import { APP_ROUTES, NOTIFICATION_TYPE_LABELS } from "../../constants";
 import { formatRelativeTime } from "../../utils/notifications";
-import type {
-  AppNotification,
-  NotificationType,
-} from "../../types";
+import type { AppNotification, NotificationType } from "../../types";
 import BackButton from "../../components/ui/BackButton";
 import { GoButton } from "../../components/ui/GoButton";
 
@@ -30,8 +24,13 @@ const NOTIFICATION_BADGE_VARIANTS: Record<
 
 export const NotificationsPage: React.FC = () => {
   const { currentUser } = useUser();
-  const { notifications, markAsRead, markAllAsRead, notificationsFor, unreadCountFor } =
-    useNotifications();
+  const {
+    notifications,
+    markAsRead,
+    markAllAsRead,
+    notificationsFor,
+    unreadCountFor,
+  } = useNotifications();
   const { getTicketById } = useTickets();
   const { customers, getCustomerById } = useCustomers();
 
@@ -42,9 +41,7 @@ export const NotificationsPage: React.FC = () => {
   // Prefer the stored customerId; fall back to the ticket, then to the customer
   // name embedded in the message (old notifications predate customerId and may
   // reference tickets that were replaced by the mock dataset on reload).
-  const customerForNotification = (
-    notification: AppNotification,
-  ) => {
+  const customerForNotification = (notification: AppNotification) => {
     const byId =
       notification.customerId ??
       (notification.ticketId
@@ -161,7 +158,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       </div>
       {href && (
         <div className="shrink-0">
-          <GoButton child="Go" />
+          <GoButton child="View" />
         </div>
       )}
     </div>

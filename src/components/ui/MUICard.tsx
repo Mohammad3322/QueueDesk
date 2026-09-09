@@ -100,7 +100,7 @@ export function DashboardTicketCard({
           to={`${APP_ROUTES.tickets}/${ticket.id}`}
           className="text-xs font-medium text-blue-600 ml-2"
         >
-          <GoButton child="Go" />
+          <GoButton child="View" />
         </RouterLink>
       </CardContent>
 

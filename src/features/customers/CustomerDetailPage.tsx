@@ -129,11 +129,8 @@ export const CustomerDetailPage: React.FC = () => {
                       · <span className="capitalize">{ticket.priority}</span>
                     </p>
                   </div>
-                  <Link
-                    to={`/tickets/${ticket.id}`}
-                    className="shrink-0"
-                  >
-                    <GoButton child="Go" />
+                  <Link to={`/tickets/${ticket.id}`} className="shrink-0">
+                    <GoButton child="View" />
                   </Link>
                 </li>
               ))}

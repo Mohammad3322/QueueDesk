@@ -173,13 +173,11 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-
-              <Link
-                to="/analytics"
-                className="inline-block"
-              >
-                <GoButton child="Go" />
-              </Link>
+              <div>
+                <Link to="/analytics" className="inline-block my-10">
+                  <GoButton child="View Details" />
+                </Link>
+              </div>
             </Card>
 
             <Card
